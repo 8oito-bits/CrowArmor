@@ -1,0 +1,1 @@
+savedcmd_/home/mob/Documents/mlgsecre/CrowArmor/modules.order := {   echo /home/mob/Documents/mlgsecre/CrowArmor/sources/crowarmor/crowarmor.o; :; } > /home/mob/Documents/mlgsecre/CrowArmor/modules.order

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "crowarmor.h": "c",
+        "ioctl.h": "c",
+        "err.h": "c"
+    }
+}

@@ -1,0 +1,1 @@
+savedcmd_/home/mob/Documents/mlgsecre/CrowArmor/sources/crowarmor/crowarmor.o := ld -m elf_x86_64 -z noexecstack --no-warn-rwx-segments   -r -o /home/mob/Documents/mlgsecre/CrowArmor/sources/crowarmor/crowarmor.o @/home/mob/Documents/mlgsecre/CrowArmor/sources/crowarmor/crowarmor.mod 

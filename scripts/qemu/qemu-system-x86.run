@@ -1,0 +1,97 @@
+#!/bin/bash
+
+log_message() {
+  local timestamp
+  timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+  local message="[$timestamp] $1"
+
+  # Define color codes
+  local green="\e[32m"
+  local red="\e[31m"
+  local reset="\e[0m"
+
+  # Check if the message contains "Error" and apply red color accordingly
+  if [[ $1 == *"Error"* ]]; then
+    echo -e "${red}${message}${reset}"
+  else
+    echo -e "${green}${message}${reset}"
+  fi
+}
+
+check_drivers_compiled() {
+  local driver_telekinesis="sources/crowarmor/crowarmor.ko"
+
+  if [ -e "$driver_telekinesis" ]; then
+    log_message "[*] Drivers found: crowarmor"
+    return 0  # [*] Success
+  else
+    log_message "[*] Error: Drivers crowarmor not found"
+    return 1  # [*] Failure
+  fi
+}
+
+compact_busybox() {
+  local script_dir="scripts/qemu/initramfs"
+
+  # Check if the script directory exists
+  if [ ! -d "$script_dir" ]; then
+    log_message "[*] Error: Script directory not found: $script_dir"
+    return 1
+  fi
+
+  # Change to the script directory
+  pushd "$script_dir" > /dev/null || return 1
+
+  # Check if the compact script exists and is executable
+  if [ ! -x "compress" ]; then
+    log_message "[*] Error: compress script not found or not executable."
+    popd > /dev/null || return 1
+    return 1
+  fi
+
+  # Run the compact script and suppress output
+  ./compress
+
+  # Return to the previous directory
+  popd > /dev/null || return 1
+}
+
+qemu_system() {
+  log_message "[*] Starting an emulation "
+
+  # Check compiled drivers
+  if check_drivers_compiled; then
+
+    # Copy modules compiled for initramfs
+    log_message "[*] Moving compiled drivers for /opt/"
+    cp -r sources modules Makefile scripts/qemu/initramfs/opt/
+
+    # verify arch based
+    if [ -f "/etc/arch-release" ]; then
+         log_message "[*] Detected Arch Linux "
+         tar czf /tmp/initramfs.tar.gz --directory=scripts/qemu/initramfs/ .
+         mkinitcpio -k /boot/vmlinuz-linux -c ./scripts/qemu/mkinitcpio.conf -g /tmp/initramfs.img
+         local vmlinuz="/boot/vmlinuz-linux"
+    else
+      # If drivers are compiled, create initramfs
+      log_message "[*] Compressing initramfs"
+      compact_busybox
+      local vmlinuz="/boot/vmlinuz"
+    fi
+
+    log_message "[*] Running qemu-system-x86_64"
+    sudo qemu-system-x86_64 -kernel $vmlinuz \
+        -initrd scripts/qemu/initramfs.img \
+        -serial stdio \
+        -m 2G \
+        -enable-kvm \
+        -cpu host \
+
+  else
+    # If drivers are not compiled, show error
+    log_message "[*] Error: Aborting emulation due to missing drivers"
+  fi
+}
+
+# Run the emulation
+qemu_system

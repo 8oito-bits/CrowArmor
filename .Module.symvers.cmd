@@ -1,0 +1,1 @@
+savedcmd_/home/mob/Documents/mlgsecre/CrowArmor/Module.symvers :=  scripts/mod/modpost -m -a      -o /home/mob/Documents/mlgsecre/CrowArmor/Module.symvers -T /home/mob/Documents/mlgsecre/CrowArmor/modules.order -i Module.symvers -e 
