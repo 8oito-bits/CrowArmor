@@ -33,6 +33,8 @@ modules.builtin
 *.patch
 *.gcno
 
+tests/*.elf
+
 #
 # Top-level generic files
 #

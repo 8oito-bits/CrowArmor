@@ -11,11 +11,11 @@ all: compile
 
 compile:
 	@echo "$(RESET)$(GREEN)[*]$(RESET) Compiling Tests for CrowArmor Driver ..."
-	@$(CC) $(FLAGS) tests_syscall_hook.c -o tests_syscall_hook
+	@$(CC) $(FLAGS) tests_syscall_hook.c -o tests_syscall_hook.elf
 	@echo "$(RESET)$(GREEN)[*]$(RESET) Compilation complete."
 
 clean:
 	@echo "$(RESET)$(RED)[*]$(RESET) Deleting Tests drivers compilations ..."
-	@rm tests_syscall_hook
+	@rm tests_syscall_hook.elf
 
 	
