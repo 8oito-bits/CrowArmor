@@ -1,7 +1,7 @@
 # Variables created for CrowArmor
 KDIR = /lib/modules/$(shell uname -r)/build
 DRIVER_PATH = $(PWD)/sources/crowarmor/crowarmor.ko
-DRIVER_LUNATIK_PATH =  $(PWD)/modules/lunatik/Makefile
+
 # Default variables for Makefile in Linux
 obj-m += sources/crowarmor/crowarmor.o
 sources/crowarmor/crowarmor-objs = sources/drm/drm_virtual_device.o \
@@ -32,6 +32,7 @@ all:
 
 clean:
 	@echo "$(RESET)$(RED)[*]$(RESET) Deleting drivers compilations ..."
+	@make -C tests clean
 	@make -C $(KDIR) M=$(PWD) clean
 
 infos: check_driver
@@ -55,7 +56,8 @@ help:
 	@echo "  $(RESET)$(GREEN)make help$(RESET)          : Display this help message"
 	@echo "  $(RESET)$(GREEN)make install$(RESET)       : Install Driver in machine"
 	@echo "  $(RESET)$(GREEN)make uninstall$(RESET)     : Uninstall Driver from machine"
-
+	@echo "  $(RESET)$(GREEN)make tests_compile$(RESET) : Make Tests Driver"
+	@echo "  $(RESET)$(GREEN)make tests_clean$(RESET)   : Delete Tests Driver"
 
 install: check_driver
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Installing drivers ..."
@@ -66,3 +68,9 @@ uninstall: check_driver
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Uninstalling driver ..."
 	@sudo rmmod crowarmor
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Driver Uninstalled Successfully ..."
+
+tests_compile: 
+	@make -C tests compile
+
+tests_clean:
+	@make -C tests clean

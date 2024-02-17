@@ -19,9 +19,9 @@ log_message() {
 }
 
 check_drivers_compiled() {
-  local driver_telekinesis="sources/crowarmor/crowarmor.ko"
+  local driver_crowarmor="sources/crowarmor/crowarmor.ko"
 
-  if [ -e "$driver_telekinesis" ]; then
+  if [ -e "$driver_crowarmor" ]; then
     log_message "[*] Drivers found: crowarmor"
     return 0  # [*] Success
   else
@@ -64,7 +64,7 @@ qemu_system() {
 
     # Copy modules compiled for initramfs
     log_message "[*] Moving compiled drivers for /opt/"
-    cp -r sources modules Makefile scripts/qemu/initramfs/opt/
+    cp -r sources tests scripts/qemu/initramfs/opt/
 
     # verify arch based
     if [ -f "/etc/arch-release" ]; then

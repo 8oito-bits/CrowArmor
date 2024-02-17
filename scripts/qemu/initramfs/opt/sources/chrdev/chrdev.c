@@ -12,9 +12,11 @@
 #include <linux/version.h>
 #include <linux/atomic.h>
 
-#include "../error/error.h"
-#include "../tkp/ioctl/ioctl.h"
-#include "../tkp/signals/signals.h"
+#include "err/err.h"
+#include "ioctl/ioctl.h"
+
+#define CDEV_NOT_USED 0
+#define CDEV_EXCLUSIVE_OPEN 1
 
 static __always_inline int device_open(struct inode *, struct file *);
 static __always_inline int device_release(struct inode *, struct file *);
@@ -46,7 +48,7 @@ static atomic_t already_open = ATOMIC_INIT(CDEV_NOT_USED);
 
 int device_open(struct inode *_inode, struct file *_file)
 {
-    int retval = SUCCESS;
+    int retval = ERR_SUCCESS;
 
     /**
      *  Get status actualy this module using atomic
@@ -60,7 +62,7 @@ int device_open(struct inode *_inode, struct file *_file)
     else
     {
         if (!try_module_get(THIS_MODULE))
-            retval = ERROR;
+            retval = ERR_FAILURE;
         else
             pr_info("crowarmor: Driver has been opened and being used this process PID %d", current->pid);
     }
@@ -82,7 +84,7 @@ int device_release(struct inode *_inode, struct file *_file)
 
     pr_alert("crowarmor: Driver has been closed this process PID %d", current->pid);
 
-    return SUCCESS;
+    return ERR_SUCCESS;
 }
 
 ssize_t device_read(struct file *_file, char __user *_user, size_t, loff_t *_loff)
@@ -108,12 +110,12 @@ __always_inline long device_ioctl(struct file *file,
                                   unsigned int ioctl_num,
                                   unsigned long ioctl_param)
 {
-    long retval = SUCCESS;
+    long retval = ERR_SUCCESS;
 
     switch (ioctl_num)
     {
-    case IOCTL_SET_MSG:
-        pr_info("crowarmor: call IOCTL_SET_MSG");
+    case IOCTL_IOW_ACTIVED:
+        pr_info("crowarmor: call IOCTL_IOW_ACTIVED");
         /* Receive a pointer to a message (in user space) and set that to
          * be the device's message. Get the parameter given to ioctl by
          * the process.
@@ -136,7 +138,7 @@ __always_inline long device_ioctl(struct file *file,
 
 int __must_check register_driver(void)
 {
-    int retval = SUCCESS;
+    int retval = ERR_SUCCESS;
     device.name = DRIVER_NAME;
     device.major = MAJOR_NUM;
 
@@ -151,7 +153,7 @@ int __must_check register_driver(void)
     if (device.major < 0)
     {
         pr_alert("crowarmor: Registering char device failed with %d\n", device.major);
-        retval = ERROR;
+        retval = ERR_FAILURE;
         goto _retval;
     }
 
@@ -173,7 +175,7 @@ int __must_check register_driver(void)
 #endif
 
     /**
-     * Verify if class for device_create this success
+     * Verify if class for device_create this ERR_SUCCESS
      */
     if (device.cls != ERR_PTR(-ENOMEM))
     {
@@ -181,7 +183,7 @@ int __must_check register_driver(void)
         pr_info("crowarmor: Device created on /dev/%s\n", device.name);
     }
     else
-        retval = ERROR;
+        retval = ERR_FAILURE;
 
 _retval:
     return retval;

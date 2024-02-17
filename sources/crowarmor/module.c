@@ -6,11 +6,10 @@
 int __init
 init_module(void)
 {
-  ERR retval = ERR_SUCCESS;
 
   pr_info("crowamor: Starting driver crowarmor \n");
 
-  if(IS_ERR_FAILURE(register_driver()))
+  ERR retval = register_driver();
 
   if (!IS_ERR_FAILURE(retval) && !IS_ERR_FAILURE(hook_init()))
   {

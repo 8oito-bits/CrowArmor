@@ -1,12 +1,12 @@
 # crowamor: Qemu Tools
 
-Utilities used for developing the Telekinesis driver.
+Utilities used for developing the crowarmor driver.
 
 * [qemu-system-x86.run](#qemu-system-x86run)
 
 ## qemu-system-x86.run
 
-This script is used to launch an instance using qemu_system_x86_64. It is important to note that to run the script, you need to have qemu-system installed. Additionally, you need to compile both the dependency and Telekinesis and Modules using the [Makefile](../../../Makefile).
+This script is used to launch an instance using qemu_system_x86_64. It is important to note that to run the script, you need to have qemu-system installed. Additionally, you need to compile both the dependency and crowarmor and Modules using the [Makefile](../../../Makefile).
 
 Otherwise, you may encounter issues running the script.
 

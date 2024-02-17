@@ -114,8 +114,8 @@ __always_inline long device_ioctl(struct file *file,
 
     switch (ioctl_num)
     {
-    case IOCTL_SET_MSG:
-        pr_info("crowarmor: call IOCTL_SET_MSG");
+    case IOCTL_IOW_ACTIVED:
+        pr_info("crowarmor: call IOCTL_IOW_ACTIVED");
         /* Receive a pointer to a message (in user space) and set that to
          * be the device's message. Get the parameter given to ioctl by
          * the process.

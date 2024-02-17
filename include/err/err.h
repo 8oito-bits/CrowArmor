@@ -1,4 +1,20 @@
+/**
+ * @file err.h
+ * @brief Header file for error-handling macros.
+ */
+
 #pragma once
+
+#include <linux/types.h>
+
+/**
+ * @brief Enumeration for success and error values.
+ */
+typedef enum ERR
+{
+  ERR_SUCCESS, /**< Indicates successful operation. */
+  ERR_FAILURE  /**< Indicates an error occurred. */
+} ERR;
 
 /**
  * @brief Macro to check if a value represents an error.
@@ -19,11 +35,13 @@
  */
 #define IS_NULL_PTR(ptr) ((ptr) == NULL)
 
-typedef enum ERR
-{
-  ERR_SUCCESS,
-  ERR_FAILURE
-} ERR;
+/**
+ * @brief Macro to set a pointer to NULL after freeing the associated memory.
+ *
+ * @param ptr The pointer to be set to NULL.
+ */
+#define NO_USE_AFTER_FREE(ptr) (ptr) = NULL;
+
 
 /**
  * @brief Macro to check if a value represents a failure error code.

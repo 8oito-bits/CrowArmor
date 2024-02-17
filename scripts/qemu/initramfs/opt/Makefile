@@ -5,6 +5,7 @@ DRIVER_LUNATIK_PATH =  $(PWD)/modules/lunatik/Makefile
 # Default variables for Makefile in Linux
 obj-m += sources/crowarmor/crowarmor.o
 sources/crowarmor/crowarmor-objs = sources/drm/drm_virtual_device.o \
+							   sources/chrdev/chrdev.o \
 							   sources/inspector/inspector.o \
 							   sources/control_registers/cr4.o \
 							   sources/control_registers/cr0.o \

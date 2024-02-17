@@ -50,6 +50,7 @@ hook_init(void)
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_new_syscall(&syscalls[i]);
 
+  pr_info("crowarmor: ");
   return ERR_SUCCESS;
 }
 
