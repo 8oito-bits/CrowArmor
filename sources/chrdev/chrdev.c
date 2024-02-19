@@ -11,9 +11,10 @@
 #include <linux/uaccess.h> /* for get_user and put_user */
 #include <linux/version.h>
 #include <linux/atomic.h>
+#include <linux/platform_device.h>
 
 #include "err/err.h"
-#include "ioctl/ioctl.h"
+#include "crowarmor/ioctl.h"
 
 #define CDEV_NOT_USED 0
 #define CDEV_EXCLUSIVE_OPEN 1
@@ -23,25 +24,27 @@ static __always_inline int device_release(struct inode *, struct file *);
 static __always_inline ssize_t device_read(struct file *, char __user *, size_t, loff_t *);
 static __always_inline ssize_t device_write(struct file *file, const char __user *buffer,
                                             size_t length, loff_t *offset);
-
 static __always_inline long device_ioctl(struct file *file,      /* ditto */
                                          unsigned int ioctl_num, /* number and param for ioctl */
                                          unsigned long ioctl_param);
 
-static struct __device
-{
-    const char *name;  /* name driver */
-    int major;         /* major number assigned to our device driver */
-    struct class *cls; /* class for create /dev/<name> */
-} device;
+static struct class *cls; /* class for create /dev/<name> */
 
-static struct file_operations chardev_fops = {
+struct crowarmor armor;
+
+static struct file_operations fops = {
     .read = device_read,
     .write = device_write,
     .open = device_open,
     .release = device_release, /* a.k.a. close */
-    .unlocked_ioctl = device_ioctl
+    .unlocked_ioctl = device_ioctl,
+};
 
+static struct platform_driver platform = {
+    .driver = {
+        .name = "crowarmor",
+        .owner = THIS_MODULE,
+    },
 };
 
 static atomic_t already_open = ATOMIC_INIT(CDEV_NOT_USED);
@@ -96,9 +99,6 @@ ssize_t device_write(struct file *file, const char __user *buffer,
                      size_t length, loff_t *offset)
 {
     // int size;
-
-    pr_info("crowarmor: device_write(%p,%p,%ld)", file, buffer, length);
-
     // for (size = 0; size < length && size < 10; size++)
     //     get_user(message[size], buffer + size);
 
@@ -112,21 +112,17 @@ __always_inline long device_ioctl(struct file *file,
 {
     long retval = ERR_SUCCESS;
 
+    // copy armor 
+    struct crowarmor crow = armor;
+
     switch (ioctl_num)
     {
-    case IOCTL_IOW_ACTIVED:
-        pr_info("crowarmor: call IOCTL_IOW_ACTIVED");
-        /* Receive a pointer to a message (in user space) and set that to
-         * be the device's message. Get the parameter given to ioctl by
-         * the process.
-         */
-        // struct __kernel_data __user *tmp = (struct __kernel_data __user *)ioctl_param;
-
-        // get_user(ch, tmp);
-
-        // for (int i = 0; ch && i < BUF_LEN; i++, tmp++)
-        //     get_user(ch, tmp);
-
+    case IOCTL_READ_CROWARMOR:
+        if (copy_to_user((struct crowarmor *)ioctl_param, &crow, sizeof(crow)))
+        {
+            pr_alert("crowarmor: Error copy to user 'crowarmor struct'");
+            retval = ERR_FAILURE;
+        }
         break;
 
     default:
@@ -139,25 +135,21 @@ __always_inline long device_ioctl(struct file *file,
 int __must_check register_driver(void)
 {
     int retval = ERR_SUCCESS;
-    device.name = DRIVER_NAME;
-    device.major = MAJOR_NUM;
 
-    pr_info("crowarmor: Registering the %s device", device.name);
+    pr_info("crowarmor: Registering the %s device", platform.driver.name);
 
     /*
      * create and register a cdev occupying a range of minors
      * ref: https://elixir.bootlin.com/linux/latest/source/fs/char_dev.c#L268
      */
-    register_chrdev(device.major, device.name, &chardev_fops);
-
-    if (device.major < 0)
+    if (register_chrdev(MAJOR_NUM, platform.driver.name, &fops) == -ENOMEM)
     {
-        pr_alert("crowarmor: Registering char device failed with %d\n", device.major);
+        pr_alert("crowarmor: Registering char device failed with %d\n", MAJOR_NUM);
         retval = ERR_FAILURE;
         goto _retval;
     }
 
-    pr_info("crowarmor: I was assigned major number %d\n", device.major);
+    pr_info("crowarmor: I was assigned major number %d\n", MAJOR_NUM);
 
 /**
  * class_create - create a struct class structure
@@ -169,34 +161,35 @@ int __must_check register_driver(void)
  * ref: https://elixir.bootlin.com/linux/latest/source/drivers/base/class.c#L256
  */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
-    device.cls = class_create(device.name);
+    cls = class_create(platform.driver.name);
 #else
-    device.cls = class_create(THIS_MODULE, device.name);
+    cls = class_create(THIS_MODULE, platform.driver.name);
 #endif
 
     /**
      * Verify if class for device_create this ERR_SUCCESS
      */
-    if (device.cls != ERR_PTR(-ENOMEM))
+    if (cls != ERR_PTR(-ENOMEM))
     {
-        device_create(device.cls, NULL, MKDEV(device.major, 0), NULL, device.name);
-        pr_info("crowarmor: Device created on /dev/%s\n", device.name);
+        device_create(cls, NULL, MKDEV(MAJOR_NUM, 0), NULL, platform.driver.name);
+        pr_info("crowarmor: Device created on /dev/%s\n", platform.driver.name);
     }
     else
         retval = ERR_FAILURE;
 
+    armor.is_actived = true;
 _retval:
     return retval;
 }
 
 void unregister_driver(void)
 {
-    pr_alert("crowarmor: Unregistering the %s device", device.name);
-    device_destroy(device.cls, MKDEV(device.major, 0));
-    class_destroy(device.cls);
+    pr_alert("crowarmor: Unregistering the %s device", platform.driver.name);
+    device_destroy(cls, MKDEV(MAJOR_NUM, 0));
+    class_destroy(cls);
 
     /* Unregister the device */
-    unregister_chrdev(device.major, device.name);
+    unregister_chrdev(MAJOR_NUM, platform.driver.name);
 }
 
 void pr_infos_driver()

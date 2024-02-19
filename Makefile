@@ -32,8 +32,9 @@ all:
 
 clean:
 	@echo "$(RESET)$(RED)[*]$(RESET) Deleting drivers compilations ..."
-	@make -C tests clean
 	@make -C $(KDIR) M=$(PWD) clean
+	@echo "$(RESET)$(GREEN)[*]$(RESET) Deleting complete."
+
 
 infos: check_driver
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Kernel version: $(shell uname -r)"

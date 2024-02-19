@@ -34,6 +34,7 @@ modules.builtin
 *.gcno
 
 tests/*.elf
+scripts/qemu/initramfs.img
 
 #
 # Top-level generic files
