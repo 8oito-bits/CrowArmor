@@ -7,7 +7,7 @@
 #include <sys/ioctl.h>
 #include <stdbool.h>
 
-#include "crowarmor/ioctl.h"
+#include "io/ioctl.h"
 
 int main()
 {
@@ -18,16 +18,18 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    struct crowarmor crow;
+    struct crow crow;
 
-    if (ioctl(fd, IOCTL_READ_CROWARMOR, &crow) == -1)
+    if (ioctl(fd, IOCTL_READ_CROW, &crow) == -1)
     {
         perror("Error calling IOCTL_READ_CROWARMOR");
         close(fd);
         exit(EXIT_FAILURE);
     }
 
-    assert(crow.is_actived == 1);
+    assert(crow.chrdev_is_actived == true);
+    assert(crow.hook_is_actived == true);
+    assert(crow.inspector_is_actived == true);
 
     if (close(fd) == -1)
     {

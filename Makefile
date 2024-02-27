@@ -12,6 +12,7 @@ sources/crowarmor/crowarmor-objs = sources/drm/drm_virtual_device.o \
 							   sources/crowarmor/module.o \
 							   sources/hook_syscall/hook.o \
 							   sources/hook_syscall/syscall.o \
+							   sources/crowarmor/crow.o \
 							   sources/kpobres/kallsyms_lookup.o \
 
 ccflags-y += -D_KERNEL -Wimplicit-fallthrough=0 \

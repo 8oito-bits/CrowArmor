@@ -17,7 +17,7 @@
  * | 31  | PG    | Paging                |
  */
 
-unsigned long
+const unsigned long
 get_cr0(void);
 void
 set_cr0(unsigned long cr0);

@@ -4,17 +4,30 @@
 #include "hook.h"
 #include "syscall.h"
 
+struct wsyscall
+{
+        int nr_syscall;
+        const struct pt_regs *regs;
+        int pid;
+};
+
 asmlinkage long
 syscall_memfd_create(const struct pt_regs *regs)
 {
-  int pid;
+        int pid;
+        struct wsyscall syscall;
 
-  asmlinkage long (*syscall_old_memfd)(const struct pt_regs *) =
-          hook_get_old_syscall(__NR_memfd_create);
+        asmlinkage long (*syscall_old_memfd)(const struct pt_regs *) =
+            hook_get_old_syscall(__NR_memfd_create);
 
-  pid = task_pid_nr(current);
-  pr_info("crowamor: Process %i blocked due to memfd_create system call\n",
-          pid);
+        syscall.pid = pid = task_pid_nr(current);
+        syscall.nr_syscall = __NR_memfd_create;
+        syscall.regs = regs;
 
-  return syscall_old_memfd(regs);
+        pr_info("crowamor: Process %i called memfd_create syscall\n",
+                pid);
+        
+        
+
+        return syscall_old_memfd(regs);
 }

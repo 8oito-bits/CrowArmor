@@ -1,29 +1,45 @@
 #include <linux/kernel.h> /* We are doing kernel work */
 #include <linux/module.h> /* Specifically, a module  */
 
-#include "crowarmor.h"
+#include "drm/drm_virtual_device.h"
+#include "err/err.h"
+#include "hook_syscall/hook.h"
+#include "inspector/inspector.h"
+#include "chrdev/chrdev.h"
+#include "crowarmor/crow.h"
+
+static struct crow *crow;
 
 int __init
 init_module(void)
 {
-
   pr_info("crowamor: Starting driver crowarmor \n");
 
-  ERR retval = register_driver();
+  ERR retval = crow_init(&crow);
 
-  if (!IS_ERR_FAILURE(retval) && !IS_ERR_FAILURE(hook_init()))
+  if (!IS_ERR_FAILURE(retval))
   {
-    retval = ERR_SUCCESS;
+    if (!IS_ERR_FAILURE(chrdev_init(&crow)))
+    {
+      retval = ERR_SUCCESS;
 
-    /*...*/
-  }
+      /*...*/
+    }
 
-  if (!IS_ERR_FAILURE(retval) &&
-      !IS_ERR_FAILURE(inspector_registers_controls_init()))
-  {
-    retval = ERR_SUCCESS;
+    if (!IS_ERR_FAILURE(retval) && !IS_ERR_FAILURE(hook_init(&crow)))
+    {
+      retval = ERR_SUCCESS;
 
-    /*...*/
+      /*...*/
+    }
+
+    if (!IS_ERR_FAILURE(retval) &&
+        !IS_ERR_FAILURE(inspector_init(&crow)))
+    {
+      retval = ERR_SUCCESS;
+
+      /*...*/
+    }
   }
 
   return retval;
@@ -34,8 +50,9 @@ cleanup_module(void)
 {
   pr_warn("crowamor: Shutdown driver crowarmor\n");
   hook_end();
-  inspector_registers_controls_end();
-  unregister_driver();
+  chrdev_end();
+  inspector_end();
+  crow_end(&crow);
 }
 
 MODULE_AUTHOR("Moblog Security Researchers <https://www.moblog.in>");

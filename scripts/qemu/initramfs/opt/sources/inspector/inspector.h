@@ -1,7 +1,8 @@
 #pragma once
 
 #include "err/err.h"
+#include "crowarmor/datacrow.h"
 
-__must_check ERR
-inspector_registers_controls_init(void) notrace;
-void inspector_registers_controls_end(void) notrace;
+const __must_check ERR
+inspector_init(struct crow **crow) notrace;
+void inspector_end(void) notrace;

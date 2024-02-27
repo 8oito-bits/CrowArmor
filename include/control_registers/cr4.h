@@ -27,7 +27,7 @@
  *  | 24  | PKS        | Enable Protection Keys for Supervisor-Mode Pages                   |
  */
 
-unsigned long
+const unsigned long
 get_cr4(void);
 void
 set_cr4(unsigned long cr4);

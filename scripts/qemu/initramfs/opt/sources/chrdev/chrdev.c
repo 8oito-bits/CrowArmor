@@ -1,7 +1,6 @@
 #include "chrdev.h"
 
 #include <linux/types.h>
-#include <linux/atomic.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/fs.h>
@@ -14,7 +13,7 @@
 #include <linux/platform_device.h>
 
 #include "err/err.h"
-#include "ioctl/ioctl.h"
+#include "io/ioctl.h"
 
 #define CDEV_NOT_USED 0
 #define CDEV_EXCLUSIVE_OPEN 1
@@ -24,12 +23,12 @@ static __always_inline int device_release(struct inode *, struct file *);
 static __always_inline ssize_t device_read(struct file *, char __user *, size_t, loff_t *);
 static __always_inline ssize_t device_write(struct file *file, const char __user *buffer,
                                             size_t length, loff_t *offset);
-
 static __always_inline long device_ioctl(struct file *file,      /* ditto */
                                          unsigned int ioctl_num, /* number and param for ioctl */
                                          unsigned long ioctl_param);
 
-struct class *cls; /* class for create /dev/<name> */
+static struct class *cls; /* class for create /dev/<name> */
+static struct crow **armor;
 
 static struct file_operations fops = {
     .read = device_read,
@@ -91,18 +90,13 @@ int device_release(struct inode *_inode, struct file *_file)
 
 ssize_t device_read(struct file *_file, char __user *_user, size_t, loff_t *_loff)
 {
-    return 0;
+    return -EPERM;
 }
 
 ssize_t device_write(struct file *file, const char __user *buffer,
                      size_t length, loff_t *offset)
 {
-    // int size;
-    // for (size = 0; size < length && size < 10; size++)
-    //     get_user(message[size], buffer + size);
-
-    /* Again, return the number of input characters used. */
-    return 0;
+    return -EPERM;
 }
 
 __always_inline long device_ioctl(struct file *file,
@@ -111,12 +105,13 @@ __always_inline long device_ioctl(struct file *file,
 {
     long retval = ERR_SUCCESS;
 
-    struct crowarmor crow;
+    // copy armor
+    struct crow crow = *(*armor);
 
     switch (ioctl_num)
     {
-    case IOCTL_READ_CROWARMOR:
-        if (copy_to_user((struct crowarmor *)ioctl_param, &crow, sizeof(crow)))
+    case IOCTL_READ_CROW:
+        if (copy_to_user((struct crow *)ioctl_param, &crow, sizeof(crow)))
         {
             pr_alert("crowarmor: Error copy to user 'crowarmor struct'");
             retval = ERR_FAILURE;
@@ -130,7 +125,7 @@ __always_inline long device_ioctl(struct file *file,
     return retval;
 }
 
-int __must_check register_driver(void)
+int __must_check chrdev_init(struct crow **crow)
 {
     int retval = ERR_SUCCESS;
 
@@ -167,19 +162,23 @@ int __must_check register_driver(void)
     /**
      * Verify if class for device_create this ERR_SUCCESS
      */
-    if (cls != ERR_PTR(-ENOMEM))
+    if (cls == ERR_PTR(-ENOMEM))
     {
-        device_create(cls, NULL, MKDEV(MAJOR_NUM, 0), NULL, platform.driver.name);
-        pr_info("crowarmor: Device created on /dev/%s\n", platform.driver.name);
-    }
-    else
         retval = ERR_FAILURE;
+        goto _retval;
+    }
+
+    device_create(cls, NULL, MKDEV(MAJOR_NUM, 0), NULL, platform.driver.name);
+    pr_info("crowarmor: Device created on /dev/%s\n", platform.driver.name);
+
+    (*crow)->chrdev_is_actived = true;
+    armor = crow;
 
 _retval:
     return retval;
 }
 
-void unregister_driver(void)
+void chrdev_end()
 {
     pr_alert("crowarmor: Unregistering the %s device", platform.driver.name);
     device_destroy(cls, MKDEV(MAJOR_NUM, 0));
@@ -187,22 +186,21 @@ void unregister_driver(void)
 
     /* Unregister the device */
     unregister_chrdev(MAJOR_NUM, platform.driver.name);
+    (*armor)->chrdev_is_actived = false;
 }
 
 void pr_infos_driver()
 {
-    struct module *mod = THIS_MODULE;
-
-    pr_info("crowarmor: Module name: %s\n", mod->name);
-    pr_info("crowarmor: Module version: %s\n", mod->version);
-    pr_info("crowarmor: Module srcversion: %s\n", mod->srcversion);
-    pr_info("crowarmor: Module state: %i\n", mod->state);
+    pr_info("crowarmor: Module name: %s\n", THIS_MODULE->name);
+    pr_info("crowarmor: Module version: %s\n", THIS_MODULE->version);
+    pr_info("crowarmor: Module srcversion: %s\n", THIS_MODULE->srcversion);
+    pr_info("crowarmor: Module state: %i\n", THIS_MODULE->state);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
-    pr_info("crowarmor: Module address: 0x%llx\n", (unsigned long long)mod->mem->base);
-    pr_info("crowarmor: Module size: 0x%llx\n", (unsigned long long)mod->mem->size);
+    pr_info("crowarmor: Module address: 0x%llx\n", (unsigned long long)THIS_MODULE->mem->base);
+    pr_info("crowarmor: Module size: 0x%llx\n", (unsigned long long)THIS_MODULE->mem->size);
 #endif
 
 #ifdef CONFIG_STACKTRACE_BUILD_ID
-    pr_info("crowarmor: Module build ID: %p\n", mod->build_id);
+    pr_info("crowarmor: Module build ID: %p\n", THIS_MODULE->build_id);
 #endif
 }
