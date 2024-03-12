@@ -3,6 +3,7 @@
 #include "control_registers/cr0.h"
 #include "control_registers/cr4.h"
 #include "err/err.h"
+#include "hook_syscall/hook.h"
 
 #include <linux/delay.h>
 #include <linux/kernel.h>
@@ -15,6 +16,8 @@ inline static bool
 check_bit_cr4pvi(void);
 inline static int
 inspector_thread_function(void *data);
+
+static void check_hooked_syscalls(void);
 
 static struct task_struct *inspector_thread;
 struct crow **armor;
@@ -41,6 +44,20 @@ void inspector_end(void)
   pr_warn("crowamor: Thread inspector shutdown ...");
 }
 
+static void check_hooked_syscalls(void)
+{
+  struct hook_syscall syscall;
+  size_t i;
+  for(i = 0; i < __NR_syscalls; i++)
+  {
+    hook_check_hooked_syscall(&syscall, i);
+    if(syscall.unknown_hook == true)
+    {
+      pr_info("syscall %i hooked by %lx\n", syscall.idx, (unsigned long) syscall.new_syscall);
+    }
+  }
+}
+
 bool check_bit_cr0wp(void)
 {
   return (get_cr0() >> 16) & 0x1;
@@ -60,6 +77,7 @@ int inspector_thread_function(void *data)
       pr_alert("crowamor: CR0 write-protect bit not set (0); setting "
                "write-protect bit to 1");
       enable_register_cr0_wp();
+      check_hooked_syscalls();
     }
     /*
      * When protected-mode virtual interrupts are disabled (that is, when the PVI flag in
