@@ -1,6 +1,9 @@
 # CrowArmor : Linux Driver
 
-![warning](assets/warning.png)
+
+> [!WARNING]
+> Dear Users, We would like to inform you that Telekinesis is currently in its beta testing phase. As such, we highly recommend refraining from installing it on your host machine at this time.
+
 ![CrowArmor](assets/crowarmor.png)
 
 
