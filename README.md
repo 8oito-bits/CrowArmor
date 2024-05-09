@@ -2,7 +2,7 @@
 
 
 > [!WARNING]
-> Dear Users, We would like to inform you that Telekinesis is currently in its beta testing phase. As such, we highly recommend refraining from installing it on your host machine at this time.
+> Dear Users, We would like to inform you that CrowArmor is currently in its beta testing phase. As such, we highly recommend refraining from installing it on your host machine at this time.
 
 ![CrowArmor](assets/crowarmor.png)
 
