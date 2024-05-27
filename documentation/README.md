@@ -43,7 +43,6 @@ After you install the driver, make sure the driver resides in `/dev/crowarmor`.
 │   └── <a href="../documentation/README.md">README.md</a>
 ├── <a href="../include">include</a>            <!-- Headers utilized in sources -->
 │   ├── <a href="../include/control_registers">control_registers</a>
-│   ├── <a href="../include/drm">drm</a>
 │   ├── <a href="../include/err">err</a>
 │   ├── <a href="../include/kpobres">kpobres</a>
 │   └── <a href="../include/signals">signals</a>
@@ -55,7 +54,6 @@ After you install the driver, make sure the driver resides in `/dev/crowarmor`.
 └── <a href="../sources">sources</a>            <!-- crowarmor codes and inclusive modules -->
     ├── <a href="../sources/chrdev">chrdev</a>
     ├── <a href="../sources/control_registers">control_registers</a>
-    ├── <a href="../sources/drm">drm</a>
     ├── <a href="../sources/hook_syscall">hook_syscall</a>
     ├── <a href="../sources/inspector">inspector</a>
     ├── <a href="../sources/kpobres">kpobres</a>

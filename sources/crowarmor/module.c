@@ -1,7 +1,6 @@
 #include <linux/kernel.h> /* We are doing kernel work */
 #include <linux/module.h> /* Specifically, a module  */
 
-#include "drm/drm_virtual_device.h"
 #include "err/err.h"
 #include "hook_syscall/hook.h"
 #include "inspector/inspector.h"
