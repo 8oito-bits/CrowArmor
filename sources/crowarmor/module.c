@@ -54,7 +54,7 @@ cleanup_module(void)
   crow_end(&crow);
 }
 
-MODULE_AUTHOR("Moblog Security Researchers <https://www.moblog.in>");
+MODULE_AUTHOR("MalDec Labs");
 MODULE_DESCRIPTION("Driver to hardening");
 MODULE_LICENSE("GPL");
 MODULE_VERSION("1.0.0");
