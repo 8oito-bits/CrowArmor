@@ -59,6 +59,9 @@ help:
 	@echo "  $(RESET)$(GREEN)make uninstall$(RESET)     : Uninstall Driver from machine"
 	@echo "  $(RESET)$(GREEN)make tests_compile$(RESET) : Make Tests Driver"
 	@echo "  $(RESET)$(GREEN)make tests_clean$(RESET)   : Delete Tests Driver"
+	@if [ -f "/etc/debian_version" ]; then \
+    	echo "  $(RESET)$(GREEN)make qemu_start$(RESET)    : Start emulation using qemu"; \
+    fi 
 
 install: check_driver
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Installing drivers ..."
@@ -75,3 +78,6 @@ tests_compile:
 
 tests_clean:
 	@make -C tests clean
+
+qemu_start:
+	@scripts/qemu/qemu-system-x86.run
