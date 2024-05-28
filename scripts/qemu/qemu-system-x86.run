@@ -66,17 +66,13 @@ qemu_system() {
     log_message "[*] Moving compiled drivers for /opt/"
     cp -r sources tests scripts/qemu/initramfs/opt/
 
-    # verify arch based
-    if [ -f "/etc/arch-release" ]; then
-         log_message "[*] Detected Arch Linux "
-         tar czf /tmp/initramfs.tar.gz --directory=scripts/qemu/initramfs/ .
-         mkinitcpio -k /boot/vmlinuz-linux -c ./scripts/qemu/mkinitcpio.conf -g /tmp/initramfs.img
-         local vmlinuz="/boot/vmlinuz-linux"
-    else
-      # If drivers are compiled, create initramfs
+    if [ -f "/etc/debian_version" ]; then
       log_message "[*] Compressing initramfs"
       compact_busybox
       local vmlinuz="/boot/vmlinuz"
+    else 
+      log_message "[*] Error: this distro not Debian-based"
+      return -1
     fi
 
     log_message "[*] Running qemu-system-x86_64"
