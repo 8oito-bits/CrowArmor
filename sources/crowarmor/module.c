@@ -1,7 +1,6 @@
 #include <linux/kernel.h> /* We are doing kernel work */
 #include <linux/module.h> /* Specifically, a module  */
 
-#include "drm/drm_virtual_device.h"
 #include "err/err.h"
 #include "hook_syscall/hook.h"
 #include "inspector/inspector.h"
@@ -55,7 +54,7 @@ cleanup_module(void)
   crow_end(&crow);
 }
 
-MODULE_AUTHOR("Moblog Security Researchers <https://www.moblog.in>");
+MODULE_AUTHOR("MalDec Labs");
 MODULE_DESCRIPTION("Driver to hardening");
 MODULE_LICENSE("GPL");
 MODULE_VERSION("1.0.0");

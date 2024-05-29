@@ -1,11 +1,15 @@
 # CrowArmor : Linux Driver
 
+
+> [!WARNING]
+> Dear Users, We would like to inform you that CrowArmor is currently in its beta testing phase. As such, we highly recommend refraining from installing it on your host machine at this time.
+
 ![CrowArmor](assets/crowarmor.png)
 
 
 # What is CrowArmor ?
 
-CrowArmor is a driver for Linux aimed at system security, we use [LSM](https://en.wikipedia.org/wiki/Linux_Security_Modules) interfaces to improve kernel security, providing support for [Linux Defender](https://github.com/mlg-security/LinuxDefender), code documentation and how to proceed with installation [Documentation](documentation)
+CrowArmor is a driver for Linux aimed at system security, we use [LSM](https://en.wikipedia.org/wiki/Linux_Security_Modules) interfaces to improve kernel security, providing support for [MalDec-EDR](https://github.com/maldeclabs/MalDec-EDR), code documentation and how to proceed with installation [Documentation](documentation)
 
 # Development Process
 

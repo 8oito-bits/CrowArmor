@@ -9,6 +9,7 @@
 #
 # Normal rules
 #
+scripts/qemu/initramfs/opt/*
 .*
 *.o
 *.o.*

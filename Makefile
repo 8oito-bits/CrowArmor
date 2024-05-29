@@ -4,8 +4,7 @@ DRIVER_PATH = $(PWD)/sources/crowarmor/crowarmor.ko
 
 # Default variables for Makefile in Linux
 obj-m += sources/crowarmor/crowarmor.o
-sources/crowarmor/crowarmor-objs = sources/drm/drm_virtual_device.o \
-							   sources/chrdev/chrdev.o \
+sources/crowarmor/crowarmor-objs = sources/chrdev/chrdev.o \
 							   sources/inspector/inspector.o \
 							   sources/control_registers/cr4.o \
 							   sources/control_registers/cr0.o \
@@ -60,6 +59,9 @@ help:
 	@echo "  $(RESET)$(GREEN)make uninstall$(RESET)     : Uninstall Driver from machine"
 	@echo "  $(RESET)$(GREEN)make tests_compile$(RESET) : Make Tests Driver"
 	@echo "  $(RESET)$(GREEN)make tests_clean$(RESET)   : Delete Tests Driver"
+	@if [ -f "/etc/debian_version" ]; then \
+    	echo "  $(RESET)$(GREEN)make qemu_start$(RESET)    : Start emulation using qemu"; \
+    fi 
 
 install: check_driver
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Installing drivers ..."
@@ -76,3 +78,6 @@ tests_compile:
 
 tests_clean:
 	@make -C tests clean
+
+qemu_start:
+	@scripts/qemu/qemu-system-x86.run
