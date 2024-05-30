@@ -10,8 +10,7 @@
 /**
  * @brief Enumeration for success and error values.
  */
-typedef enum ERR
-{
+typedef enum ERR {
   ERR_SUCCESS, /**< Indicates successful operation. */
   ERR_FAILURE  /**< Indicates an error occurred. */
 } ERR;
@@ -41,7 +40,6 @@ typedef enum ERR
  * @param ptr The pointer to be set to NULL.
  */
 #define NO_USE_AFTER_FREE(ptr) (ptr) = NULL;
-
 
 /**
  * @brief Macro to check if a value represents a failure error code.

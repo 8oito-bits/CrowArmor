@@ -4,9 +4,7 @@
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0)
 
-unsigned long
-get_cr0(void)
-{
+unsigned long get_cr0(void) {
   unsigned long cr0;
   __asm__ volatile("mov    %%cr0, %0" : "=r"(cr0));
 
@@ -19,15 +17,11 @@ get_cr0(void)
 
 #endif
 
-void
-set_cr0(unsigned long cr0)
-{
+void set_cr0(unsigned long cr0) {
   __asm__ volatile("mov    %0, %%cr0" : : "r"(cr0));
 }
 
-void
-enable_register_cr0_wp(void)
-{
+void enable_register_cr0_wp(void) {
   unsigned long cr0 = get_cr0();
 
   cr0 |= 1UL << 16;
@@ -35,9 +29,7 @@ enable_register_cr0_wp(void)
   set_cr0(cr0);
 }
 
-void
-disable_register_cr0_wp(void)
-{
+void disable_register_cr0_wp(void) {
   unsigned long cr0 = get_cr0();
 
   cr0 &= ~(1UL << 16);

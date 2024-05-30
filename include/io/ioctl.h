@@ -1,7 +1,7 @@
 #pragma once
 
-#include <linux/ioctl.h>
 #include "crowarmor/datacrow.h"
+#include <linux/ioctl.h>
 
 #define MAJOR_NUM 0x101
 
