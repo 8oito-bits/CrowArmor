@@ -1,0 +1,7 @@
+#!/bin/sh
+mount -t proc none /proc
+mount -t sysfs none /sys
+
+mknod /dev/ttyS0 c 4 64
+
+exec /bin/sh
