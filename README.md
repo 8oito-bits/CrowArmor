@@ -55,14 +55,14 @@ Changes should be tested by somebody other than the developer who wrote the code
 
 ## Tests carried out
 
-[X] - Distro Debian-Based
-    * Ubuntu
-    * Debian
-[x] - Distro Arch-Based
-    * Arch Linux
-    * Artix
-[x] - Kernel Version 6.0.0
-    * 6.8.0-35-generic
-    * 6.0.0-060000
-[x] - Kernel Version 5.0.0
-[x] - Kernel Version 4.0.0
+- [X] Distro Debian-Based
+    - Ubuntu
+    - Debian
+- [x] Distro Arch-Based
+    - Arch Linux
+    - Artix
+- [x] Kernel Version 6.0.0
+    - 6.8.0-35-generic
+    - 6.0.0-060000
+- [x] Kernel Version 5.0.0
+- [x] Kernel Version 4.0.0
