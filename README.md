@@ -1,11 +1,6 @@
 # CrowArmor : Linux Driver
 
-
-> [!WARNING]
-> Dear Users, We would like to inform you that CrowArmor is currently in its beta testing phase. As such, we highly recommend refraining from installing it on your host machine at this time.
-
 ![CrowArmor](assets/crowarmor.png)
-
 
 # What is CrowArmor ?
 
@@ -40,7 +35,7 @@ The standard practice is to have the latest stable production version available 
 ```
 # Testing
 
-You need to test all components of Linux Defender, if possible detail the task of the components you tested, which paths you took and how we can perform the tests, if possible create a script of how the tests for your task work, more than 1 developer can carry out the review.
+You need to test all components of MalDec-EDR, if possible detail the task of the components you tested, which paths you took and how we can perform the tests, if possible create a script of how the tests for your task work, more than 1 developer can carry out the review.
 
 ## Automated Testing
 
@@ -49,3 +44,26 @@ Every modification to the code, no matter how small, should ideally be accompani
 ## Manual Quality Assurance (QA) Testing
 
 Changes should be tested by somebody other than the developer who wrote the code. This is especially important for large or high-risk changes. It is useful to add a test plan to the pull request description if testing the changes is not straightforward.
+
+## Features
+
+- Communicates with MalDec EDR
+- Modifies the Syscall Table and hooks it
+- Monitors if the Syscall Table has been modified
+- Restores the Syscall if it has been modified by an unknown driver
+- Monitors the CPU Control Registers and restores them if they are modified
+
+## Tests carried out
+
+- [X] Distro Debian-Based
+    - Ubuntu
+    - Debian
+- [x] Distro Arch-Based
+    - Arch Linux
+    - Artix
+- [x] Kernel Version 6.0.0
+    - 6.8.0-35-generic
+    - 6.0.0-060000
+- [x] Kernel Version 5.0.0
+    - 5.0.5-050005-generic
+- [x] Kernel Version 4.0.0
