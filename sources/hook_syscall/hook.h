@@ -6,7 +6,6 @@
 struct hook_syscall {
   void *new_syscall;
   void *old_syscall;
-  bool crowarmor_hook;
   bool unknown_hook;
   int idx;
 };
