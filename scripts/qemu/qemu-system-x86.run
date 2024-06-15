@@ -79,7 +79,7 @@ qemu_system() {
     sudo qemu-system-x86_64 -kernel $vmlinuz \
         -initrd scripts/qemu/initramfs.img \
         -serial stdio \
-        -append nokaslr
+        -append nokaslr \
         -m 2G \
         -enable-kvm \
         -cpu host \
