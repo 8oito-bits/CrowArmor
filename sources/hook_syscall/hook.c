@@ -68,7 +68,12 @@ ERR hook_init(struct crow **crow) {
   syscall_table = (unsigned long **)kallsyms_lookup_name("sys_call_table");
 
   if (syscall_table == NULL)
+  {
+    pr_info("crowarmor: Failed to get syscall table");
     return ERR_FAILURE;
+  }
+
+  pr_info("crowarmor: syscall_table address is %lx", (unsigned long) syscall_table);
 
   old_syscall_table = kmalloc(sizeof(void *) * __NR_syscalls, __GFP_HIGH);
   
