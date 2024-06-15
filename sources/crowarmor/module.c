@@ -10,7 +10,7 @@
 static struct crow *crow;
 
 int __init init_module(void) {
-  pr_info("crowamor: Starting driver crowarmor \n");
+  pr_info("crowarmor: Starting driver crowarmor \n");
 
   ERR retval = crow_init(&crow);
 
@@ -38,7 +38,7 @@ int __init init_module(void) {
 }
 
 void __exit cleanup_module(void) {
-  pr_warn("crowamor: Shutdown driver crowarmor\n");
+  pr_warn("crowarmor: Shutdown driver crowarmor\n");
   hook_end();
   chrdev_end();
   inspector_end();

@@ -1,4 +1,4 @@
-# crowamor: Linux Driver Documentation
+# crowarmor: Linux Driver Documentation
 
 This document provides a comprehensive overview of the functionality and components of the crowarmor Linux Driver.
 

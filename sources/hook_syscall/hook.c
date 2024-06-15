@@ -94,7 +94,7 @@ ERR hook_init(struct crow **crow) {
 }
 
 void hook_end(void) {
-  pr_warn("crowamor: Hook syscalls shutdown ...");
+  pr_warn("crowarmor: Hook syscalls shutdown ...");
 
   unsigned int i;
 
