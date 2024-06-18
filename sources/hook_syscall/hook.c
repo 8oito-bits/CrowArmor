@@ -68,6 +68,29 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
   }
 }
 
+// Values ​​passed as parameters into the function using registers esi, rdi
+static void hook_crow_x64_sys_call(void)
+{
+  
+}
+
+static ERR hook_edit_x64_sys_call(void)
+{
+    void *x64_sys_call = (void*)kallsyms_lookup_name("x64_sys_call");
+
+    if (!x64_sys_call) {
+        pr_info("crowarmor: symbol 'x64_sys_call' not found\n");
+        return ERR_FAILURE;
+    }
+
+    disable_register_cr0_wp();
+    // Write the modified bytes into x64_sys_call memory
+    strncpy((char *)x64_sys_call+7, "\xCC\x00\x00", 3); // recover bytes
+    enable_register_cr0_wp();
+
+    return ERR_SUCCESS;
+}
+
 ERR hook_init(struct crow **crow) {
   unsigned int i;
 
@@ -75,6 +98,10 @@ ERR hook_init(struct crow **crow) {
 
   if (syscall_table == 0)
     return ERR_FAILURE;
+<<<<<<< Updated upstream
+=======
+  }
+>>>>>>> Stashed changes
 
   old_syscall_table = kmalloc(sizeof(void *) * __NR_syscalls, __GFP_HIGH);
 
@@ -85,6 +112,8 @@ ERR hook_init(struct crow **crow) {
     set_new_syscall(&syscalls[i]);
 
   memcpy(old_syscall_table, syscall_table, sizeof(void *) * __NR_syscalls);
+
+  hook_edit_x64_sys_call();
 
   (*crow)->hook_is_actived = true;
   armor = crow;
@@ -99,6 +128,14 @@ void hook_end(void) {
 
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);
+<<<<<<< Updated upstream
+=======
+  
+  kfree(old_syscall_table);
+  kfree(crowarmor_syscall_table);
+      hook_crow_x64_sys_call();
+
+>>>>>>> Stashed changes
 
   (*armor)->hook_is_actived = false;
 }
