@@ -124,14 +124,7 @@ void hook_end(void) {
 
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);
-<<<<<<< Updated upstream
-=======
-  
-  kfree(old_syscall_table);
-  kfree(crowarmor_syscall_table);
-      hook_crow_x64_sys_call();
 
->>>>>>> Stashed changes
 
   (*armor)->hook_is_actived = false;
 }
