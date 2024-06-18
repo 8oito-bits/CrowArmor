@@ -27,7 +27,7 @@ ERR inspector_init(struct crow **crow) {
   if (!inspector_thread)
     retval = ERR_FAILURE;
 
-  pr_info("crowamor: Thread inspector running ...");
+  pr_info("crowarmor: Thread inspector running ...");
 
   (*crow)->inspector_is_actived = true;
   armor = crow;
@@ -37,7 +37,7 @@ ERR inspector_init(struct crow **crow) {
 void inspector_end(void) {
   kthread_stop(inspector_thread);
   (*armor)->inspector_is_actived = false;
-  pr_warn("crowamor: Thread inspector shutdown ...");
+  pr_warn("crowarmor: Thread inspector shutdown ...");
 }
 
 static void check_hooked_syscalls(void) {
@@ -62,7 +62,7 @@ bool check_bit_cr4pvi(void) { return (get_cr4() >> 1) & 0x1; }
 int inspector_thread_function(void *data) {
   while (!kthread_should_stop()) {
     if (!check_bit_cr0wp()) {
-      pr_alert("crowamor: CR0 write-protect bit not set (0); setting "
+      pr_alert("crowarmor: CR0 write-protect bit not set (0); setting "
                "write-protect bit to 1");
       check_hooked_syscalls();
       enable_register_cr0_wp();
@@ -90,7 +90,7 @@ int inspector_thread_function(void *data) {
      * by the processor when the CPL is not 3
      */
     if (check_bit_cr4pvi()) {
-      pr_alert("crowamor: CR4 rotected-mode-virtual-interrupts bit to set "
+      pr_alert("crowramor: CR4 rotected-mode-virtual-interrupts bit to set "
                "(1); setting rotected-mode-virtual-interrupts bit to 0");
       disable_register_cr4_pvi();
     }

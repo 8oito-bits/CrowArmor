@@ -7,8 +7,9 @@
 #include <linux/module.h>
 #include <linux/string.h>
 
-static unsigned long **syscall_table;
 static unsigned long **old_syscall_table;
+static unsigned long **syscall_table;
+static unsigned long **crowarmor_syscall_table;
 static struct crow **armor;
 
 static struct hook_syscall syscalls[] = {
@@ -46,22 +47,15 @@ void hook_remove_unknown_syscall(struct hook_syscall *syscall) {
 }
 
 void *hook_get_old_syscall(int idx) {
-  unsigned int i;
-
-  for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++) {
-    if (syscalls[i].idx == idx)
-      return syscalls[i].old_syscall;
-  }
-
-  return NULL;
+  return old_syscall_table[idx];
 }
 
 void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
   syscall->unknown_hook = false;
 
-  if (syscall_table[idx] != old_syscall_table[idx]) {
+  if (syscall_table[idx] != crowarmor_syscall_table[idx]) {
     syscall->new_syscall = syscall_table[idx];
-    syscall->old_syscall = old_syscall_table[idx];
+    syscall->old_syscall = crowarmor_syscall_table[idx];
     syscall->idx = idx;
 
     syscall->unknown_hook = true;
@@ -96,18 +90,30 @@ ERR hook_init(struct crow **crow) {
 
   syscall_table = (unsigned long **)kallsyms_lookup_name("sys_call_table");
 
-  if (syscall_table == 0)
+  if (syscall_table == NULL)
+  {
+    pr_info("crowarmor: Failed to get syscall table");
     return ERR_FAILURE;
+  }
+
+  pr_info("crowarmor: syscall_table address is %lx", (unsigned long) syscall_table);
 
   old_syscall_table = kmalloc(sizeof(void *) * __NR_syscalls, __GFP_HIGH);
-
-  if (syscall_table == NULL)
+  
+  if (old_syscall_table == NULL)
     return ERR_FAILURE;
+
+  crowarmor_syscall_table = kmalloc(sizeof(void *) * __NR_syscalls, __GFP_HIGH);
+  
+  if (crowarmor_syscall_table == NULL)
+    return ERR_FAILURE;
+
+  memcpy(old_syscall_table, syscall_table, sizeof(void *) * __NR_syscalls);
 
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_new_syscall(&syscalls[i]);
 
-  memcpy(old_syscall_table, syscall_table, sizeof(void *) * __NR_syscalls);
+  memcpy(crowarmor_syscall_table, syscall_table, sizeof(void *) * __NR_syscalls);
 
   hook_edit_x64_sys_call();
 
@@ -118,12 +124,15 @@ ERR hook_init(struct crow **crow) {
 }
 
 void hook_end(void) {
-  pr_warn("crowamor: Hook syscalls shutdown ...");
+  pr_warn("crowarmor: Hook syscalls shutdown ...");
 
   unsigned int i;
 
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);
+  
+  kfree(old_syscall_table);
+  kfree(crowarmor_syscall_table);
 
 
   (*armor)->hook_is_actived = false;
