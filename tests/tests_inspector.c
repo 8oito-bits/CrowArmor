@@ -84,7 +84,7 @@ void __exit
 cleanup_module(void)
 {
   syscall_table[__NR_memfd_create] = old_syscall;
-  pr_warn("crowamor: Shutdown driver for tests \n");
+  pr_warn("tests_inspector: Shutdown driver for tests \n");
   enable_register_cr0_wp();
 }
 
