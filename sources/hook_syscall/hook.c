@@ -65,7 +65,9 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
 // Values ​​passed as parameters into the function using registers esi, rdi
 static void hook_crow_x64_sys_call(void)
 {
-  
+    while(true){
+    pr_info("Kernel function x64_sys_call hooked!\n");
+  }
 }
 
 static ERR hook_edit_x64_sys_call(void)
@@ -79,7 +81,12 @@ static ERR hook_edit_x64_sys_call(void)
 
     disable_register_cr0_wp();
     // Write the modified bytes into x64_sys_call memory
-    strncpy((char *)x64_sys_call+7, "\xCC\x00\x00", 3); 
+    strncpy((char *)x64_sys_call+9, "\x48\xBF", 2);
+
+    *(unsigned long*)(x64_sys_call+11) = (unsigned long)hook_crow_x64_sys_call;
+
+    strncpy((char *)x64_sys_call+19, "\xFF\xD7", 2);
+
     enable_register_cr0_wp();
 
     return ERR_SUCCESS;
@@ -131,6 +138,8 @@ void hook_end(void) {
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);
   
+  hook_crow_x64_sys_call();
+
   kfree(old_syscall_table);
   kfree(crowarmor_syscall_table);
 
