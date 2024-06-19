@@ -78,9 +78,11 @@ qemu_system() {
     log_message "[*] Running qemu-system-x86_64"
     sudo qemu-system-x86_64 -kernel $vmlinuz \
         -initrd scripts/qemu/initramfs.img \
-        -serial stdio \
         -append nokaslr \
         -m 2G \
+        -append 'console=ttyS0' \
+        -nographic \
+        -serial mon:stdio \
         -enable-kvm \
         -cpu host \
 
