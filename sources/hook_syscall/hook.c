@@ -6,6 +6,7 @@
 #include <linux/kprobes.h>
 #include <linux/module.h>
 #include <linux/string.h>
+#include <linux/version.h>
 
 static unsigned long **old_syscall_table;
 static unsigned long **syscall_table;
@@ -60,8 +61,10 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
   }
 }
 
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 8, 5)
+
 // Values ​​passed as parameters into the function using registers esi, rdi
-static void hook_crow_x64_sys_call(void) {
+static volatile void hook_crow_x64_sys_call(void) {
   while (true) {
     pr_info("Kernel function x64_sys_call hooked!\n");
   }
@@ -77,16 +80,18 @@ static ERR hook_edit_x64_sys_call(void) {
 
   disable_register_cr0_wp();
   // Write the modified bytes into x64_sys_call memory
-  strncpy((char *)x64_sys_call + 9, "\x48\xB8", 2);
+  strncpy((char *)x64_sys_call + 9, "\x48\xB8", 2); // mov rax, hook_crow_x64_sys_call
 
   *(unsigned long *)(x64_sys_call + 11) = (unsigned long)hook_crow_x64_sys_call;
 
-  strncpy((char *)x64_sys_call + 19, "\xFF\xD0", 2);
+  strncpy((char *)x64_sys_call + 19, "\xFF\xD0", 2); // call rax
 
   enable_register_cr0_wp();
 
   return ERR_SUCCESS;
 }
+
+#endif 
 
 ERR hook_init(struct crow **crow) {
   unsigned int i;
@@ -119,7 +124,14 @@ ERR hook_init(struct crow **crow) {
   memcpy(crowarmor_syscall_table, syscall_table,
          sizeof(void *) * __NR_syscalls);
 
-  hook_edit_x64_sys_call();
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 8, 5)
+  pr_info("crowarmor: This version of the kernel was identified as no longer using sys_call_table, patching the kernel...");
+  if(IS_ERR_FAILURE(hook_edit_x64_sys_call()))
+  {
+    pr_warn("crowarmor: Error in kernel patching, sys_call_table not restored.");
+    return ERR_FAILURE;
+  }
+#endif
 
   (*crow)->hook_is_actived = true;
   armor = crow;
@@ -134,8 +146,6 @@ void hook_end(void) {
 
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);
-
-  hook_crow_x64_sys_call();
 
   kfree(old_syscall_table);
   kfree(crowarmor_syscall_table);
