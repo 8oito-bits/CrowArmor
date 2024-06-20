@@ -65,9 +65,23 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 static void* symbol_x64_sys_call;
 // Values ​​passed as parameters into the function using registers rsi=nr_syscall, rdi=pt_regs
-static long hook_crow_x64_sys_call(const struct pt_regs *regs, unsigned int nr) 
+static long hook_crow_x64_sys_call(struct pt_regs *regs, unsigned int nr) 
 {
-  return ((long (*)(const struct pt_regs *))crowarmor_syscall_table[nr])(regs);
+  /*
+	 * Convert negative numbers to very high and thus out of range
+	 * numbers for comparisons.
+	 */
+	unsigned int unr = nr;
+
+  if (!likely(unr < NR_syscalls)) {
+		pr_warn("crowarmor: Syscall %i not found or does not exist", unr);
+    return -1;
+  }
+
+  unr = array_index_nospec(unr, NR_syscalls);
+	regs->ax = ((long (*)(const struct pt_regs *))crowarmor_syscall_table[nr])(regs);
+  
+  return regs->ax;
 }
 
 static ERR hook_edit_x64_sys_call(void) {
