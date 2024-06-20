@@ -8,7 +8,6 @@
 #include <linux/string.h>
 #include <linux/version.h>
 
-static void* symbol_x64_sys_call;
 static unsigned long **old_syscall_table;
 static unsigned long **syscall_table;
 static unsigned long **crowarmor_syscall_table;
@@ -63,7 +62,7 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
 }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-
+static void* symbol_x64_sys_call;
 // Values ​​passed as parameters into the function using registers esi, rdi
 static volatile void hook_crow_x64_sys_call(void) {
   while (true) {
