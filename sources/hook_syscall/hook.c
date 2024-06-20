@@ -65,28 +65,9 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 static void* symbol_x64_sys_call;
 // Values ​​passed as parameters into the function using registers rsi=nr_syscall, rdi=pt_regs
-static volatile void hook_crow_x64_sys_call(void) {
-  
-  unsigned long rdi, rsi;
-
-  asm("movq %%rdi, %0" : "=r" (rdi));
-  asm("movq %%rsi, %0" : "=r" (rsi));
-
-  unsigned int unr = rsi;
-  struct pt_regs* regs = (struct pt_regs*)rdi;
-
-  if (likely(unr < NR_syscalls)) {
-		unr = array_index_nospec(unr, NR_syscalls);
-		regs->ax = ((long (*)(struct pt_regs *))crowarmor_syscall_table[unr])(regs);
-	}
-
-  pr_info("ax = %lu\n", regs->ax);
-  pr_info("unr = %u\n", unr);
-  
-  while(true)
-  {
-
-  }
+static long hook_crow_x64_sys_call(const struct pt_regs *regs, unsigned int nr) 
+{
+  return ((long (*)(const struct pt_regs *))crowarmor_syscall_table[nr])(regs);
 }
 
 static ERR hook_edit_x64_sys_call(void) {
@@ -99,11 +80,13 @@ static ERR hook_edit_x64_sys_call(void) {
 
   disable_register_cr0_wp();
   // Write the modified bytes into x64_sys_call memory
-  strncpy((char *)symbol_x64_sys_call + 9, "\x48\xB8", 2); // mov rax, hook_crow_x64_sys_call
+  strncpy((char *)symbol_x64_sys_call, "\x48\xB8", 2); // mov rax, hook_crow_x64_sys_call
 
-  *(unsigned long *)(symbol_x64_sys_call + 11) = (unsigned long)hook_crow_x64_sys_call;
+  *(unsigned long *)(symbol_x64_sys_call+2) = (unsigned long)hook_crow_x64_sys_call;
 
-  strncpy((char *)symbol_x64_sys_call + 19, "\xFF\xD0", 2); // call rax
+  strncpy((char *)symbol_x64_sys_call+10, "\xFF\xE0", 2); // jmp rax
+  
+  strncpy((char *)symbol_x64_sys_call + 12, "\x00\xC3", 2); // ret
 
   enable_register_cr0_wp();
 
