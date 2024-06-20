@@ -81,11 +81,11 @@ static ERR hook_edit_x64_sys_call(void)
 
     disable_register_cr0_wp();
     // Write the modified bytes into x64_sys_call memory
-    strncpy((char *)x64_sys_call+9, "\x48\xBF", 2);
+    strncpy((char *)x64_sys_call+9, "\x48\xB8", 2);
 
     *(unsigned long*)(x64_sys_call+11) = (unsigned long)hook_crow_x64_sys_call;
 
-    strncpy((char *)x64_sys_call+19, "\xFF\xD7", 2);
+    strncpy((char *)x64_sys_call+19, "\xFF\xD0", 2);
 
     enable_register_cr0_wp();
 
