@@ -7,6 +7,7 @@
 #include <linux/module.h>
 #include <linux/string.h>
 #include <linux/version.h>
+#include <linux/nospec.h>
 
 static unsigned long **old_syscall_table;
 static unsigned long **syscall_table;
@@ -63,10 +64,28 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 static void* symbol_x64_sys_call;
-// Values ​​passed as parameters into the function using registers esi, rdi
+// Values ​​passed as parameters into the function using registers rsi=nr_syscall, rdi=pt_regs
 static volatile void hook_crow_x64_sys_call(void) {
-  while (true) {
-    pr_info("Kernel function x64_sys_call hooked!\n");
+  
+  unsigned long rdi, rsi;
+
+  asm("movq %%rdi, %0" : "=r" (rdi));
+  asm("movq %%rsi, %0" : "=r" (rsi));
+
+  unsigned int unr = rsi;
+  struct pt_regs* regs = (struct pt_regs*)rdi;
+
+  if (likely(unr < NR_syscalls)) {
+		unr = array_index_nospec(unr, NR_syscalls);
+		regs->ax = ((long (*)(struct pt_regs *))crowarmor_syscall_table[unr])(regs);
+	}
+
+  pr_info("ax = %lu\n", regs->ax);
+  pr_info("unr = %u\n", unr);
+  
+  while(true)
+  {
+
   }
 }
 
@@ -74,7 +93,7 @@ static ERR hook_edit_x64_sys_call(void) {
   symbol_x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
   if (!symbol_x64_sys_call) {
-    pr_info("crowarmor: symbol 'x64_sys_call' not found\n");
+    pr_info("crowarmor: Symbol 'x64_sys_call' not found\n");
     return ERR_FAILURE;
   }
 
@@ -102,9 +121,6 @@ ERR hook_init(struct crow **crow) {
     pr_info("crowarmor: Failed to get syscall table");
     return ERR_FAILURE;
   }
-
-  pr_info("crowarmor: syscall_table address is %lx",
-          (unsigned long)syscall_table);
 
   old_syscall_table = kmalloc(sizeof(void *) * __NR_syscalls, __GFP_HIGH);
 
