@@ -17,7 +17,7 @@ unsigned long kallsyms_lookup_name(const char *name) {
   kallsyms_lookup_name = (unsigned long (*)(const char *name))kp.addr;
 
   symbol_addr = (unsigned long)kallsyms_lookup_name(name);
-  if(!symbol_addr)
+  if (!symbol_addr)
     return 0;
 
   unregister_kprobe(&kp);

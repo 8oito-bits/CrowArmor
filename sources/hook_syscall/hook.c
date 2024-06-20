@@ -46,9 +46,7 @@ void hook_remove_unknown_syscall(struct hook_syscall *syscall) {
   enable_register_cr0_wp();
 }
 
-void *hook_get_old_syscall(int idx) {
-  return old_syscall_table[idx];
-}
+void *hook_get_old_syscall(int idx) { return old_syscall_table[idx]; }
 
 void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
   syscall->unknown_hook = false;
@@ -63,33 +61,31 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
 }
 
 // Values ​​passed as parameters into the function using registers esi, rdi
-static void hook_crow_x64_sys_call(void)
-{
-    while(true){
+static void hook_crow_x64_sys_call(void) {
+  while (true) {
     pr_info("Kernel function x64_sys_call hooked!\n");
   }
 }
 
-static ERR hook_edit_x64_sys_call(void)
-{
-    void *x64_sys_call = (void*)kallsyms_lookup_name("x64_sys_call");
+static ERR hook_edit_x64_sys_call(void) {
+  void *x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
-    if (!x64_sys_call) {
-        pr_info("crowarmor: symbol 'x64_sys_call' not found\n");
-        return ERR_FAILURE;
-    }
+  if (!x64_sys_call) {
+    pr_info("crowarmor: symbol 'x64_sys_call' not found\n");
+    return ERR_FAILURE;
+  }
 
-    disable_register_cr0_wp();
-    // Write the modified bytes into x64_sys_call memory
-    strncpy((char *)x64_sys_call+9, "\x48\xB8", 2);
+  disable_register_cr0_wp();
+  // Write the modified bytes into x64_sys_call memory
+  strncpy((char *)x64_sys_call + 9, "\x48\xB8", 2);
 
-    *(unsigned long*)(x64_sys_call+11) = (unsigned long)hook_crow_x64_sys_call;
+  *(unsigned long *)(x64_sys_call + 11) = (unsigned long)hook_crow_x64_sys_call;
 
-    strncpy((char *)x64_sys_call+19, "\xFF\xD0", 2);
+  strncpy((char *)x64_sys_call + 19, "\xFF\xD0", 2);
 
-    enable_register_cr0_wp();
+  enable_register_cr0_wp();
 
-    return ERR_SUCCESS;
+  return ERR_SUCCESS;
 }
 
 ERR hook_init(struct crow **crow) {
@@ -97,21 +93,21 @@ ERR hook_init(struct crow **crow) {
 
   syscall_table = (unsigned long **)kallsyms_lookup_name("sys_call_table");
 
-  if (syscall_table == NULL)
-  {
+  if (syscall_table == NULL) {
     pr_info("crowarmor: Failed to get syscall table");
     return ERR_FAILURE;
   }
 
-  pr_info("crowarmor: syscall_table address is %lx", (unsigned long) syscall_table);
+  pr_info("crowarmor: syscall_table address is %lx",
+          (unsigned long)syscall_table);
 
   old_syscall_table = kmalloc(sizeof(void *) * __NR_syscalls, __GFP_HIGH);
-  
+
   if (old_syscall_table == NULL)
     return ERR_FAILURE;
 
   crowarmor_syscall_table = kmalloc(sizeof(void *) * __NR_syscalls, __GFP_HIGH);
-  
+
   if (crowarmor_syscall_table == NULL)
     return ERR_FAILURE;
 
@@ -120,7 +116,8 @@ ERR hook_init(struct crow **crow) {
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_new_syscall(&syscalls[i]);
 
-  memcpy(crowarmor_syscall_table, syscall_table, sizeof(void *) * __NR_syscalls);
+  memcpy(crowarmor_syscall_table, syscall_table,
+         sizeof(void *) * __NR_syscalls);
 
   hook_edit_x64_sys_call();
 
@@ -137,12 +134,11 @@ void hook_end(void) {
 
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);
-  
+
   hook_crow_x64_sys_call();
 
   kfree(old_syscall_table);
   kfree(crowarmor_syscall_table);
-
 
   (*armor)->hook_is_actived = false;
 }

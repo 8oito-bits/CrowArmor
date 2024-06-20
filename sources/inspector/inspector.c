@@ -5,11 +5,11 @@
 #include "err/err.h"
 #include "hook_syscall/hook.h"
 
-#include <linux/unistd.h>
 #include <linux/delay.h>
 #include <linux/kernel.h>
 #include <linux/kthread.h>
 #include <linux/sched.h>
+#include <linux/unistd.h>
 
 inline static bool check_bit_cr0wp(void);
 inline static bool check_bit_cr4pvi(void);
