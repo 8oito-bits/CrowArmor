@@ -8,7 +8,7 @@
 #include <linux/string.h>
 #include <linux/version.h>
 
-static void* x64_sys_call;
+static void* symbol_x64_sys_call;
 static unsigned long **old_syscall_table;
 static unsigned long **syscall_table;
 static unsigned long **crowarmor_syscall_table;
@@ -72,20 +72,20 @@ static volatile void hook_crow_x64_sys_call(void) {
 }
 
 static ERR hook_edit_x64_sys_call(void) {
-  x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
+  symbol_x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
-  if (!x64_sys_call) {
+  if (!symbol_x64_sys_call) {
     pr_info("crowarmor: symbol 'x64_sys_call' not found\n");
     return ERR_FAILURE;
   }
 
   disable_register_cr0_wp();
   // Write the modified bytes into x64_sys_call memory
-  strncpy((char *)x64_sys_call + 9, "\x48\xB8", 2); // mov rax, hook_crow_x64_sys_call
+  strncpy((char *)symbol_x64_sys_call + 9, "\x48\xB8", 2); // mov rax, hook_crow_x64_sys_call
 
-  *(unsigned long *)(x64_sys_call + 11) = (unsigned long)hook_crow_x64_sys_call;
+  *(unsigned long *)(symbol_x64_sys_call + 11) = (unsigned long)hook_crow_x64_sys_call;
 
-  strncpy((char *)x64_sys_call + 19, "\xFF\xD0", 2); // call rax
+  strncpy((char *)symbol_x64_sys_call + 19, "\xFF\xD0", 2); // call rax
 
   enable_register_cr0_wp();
 
@@ -153,7 +153,7 @@ void hook_end(void) {
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
   pr_info("crowarmor: Restoring an opcodes");
-  strncpy((char *)x64_sys_call + 9, "\x81\xFE\xBD\x00\x00\x00\x0F\x84\x28\x1C\x00\x00", 12); // call rax
+  strncpy((char *)symbol_x64_sys_call + 9, "\x81\xFE\xBD\x00\x00\x00\x0F\x84\x28\x1C\x00\x00", 12); // call rax
 #endif 
 
   (*armor)->hook_is_actived = false;
