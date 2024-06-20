@@ -8,6 +8,7 @@
 #include <linux/string.h>
 #include <linux/version.h>
 
+static void* x64_sys_call;
 static unsigned long **old_syscall_table;
 static unsigned long **syscall_table;
 static unsigned long **crowarmor_syscall_table;
@@ -61,7 +62,7 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
   }
 }
 
-#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 8, 5)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 
 // Values ​​passed as parameters into the function using registers esi, rdi
 static volatile void hook_crow_x64_sys_call(void) {
@@ -71,7 +72,7 @@ static volatile void hook_crow_x64_sys_call(void) {
 }
 
 static ERR hook_edit_x64_sys_call(void) {
-  void *x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
+  x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
   if (!x64_sys_call) {
     pr_info("crowarmor: symbol 'x64_sys_call' not found\n");
@@ -124,7 +125,7 @@ ERR hook_init(struct crow **crow) {
   memcpy(crowarmor_syscall_table, syscall_table,
          sizeof(void *) * __NR_syscalls);
 
-#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 8, 5)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
   pr_info("crowarmor: This version of the kernel was identified as no longer using sys_call_table, patching the kernel...");
   if(IS_ERR_FAILURE(hook_edit_x64_sys_call()))
   {
@@ -149,6 +150,11 @@ void hook_end(void) {
 
   kfree(old_syscall_table);
   kfree(crowarmor_syscall_table);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+  pr_info("crowarmor: Restoring an opcodes");
+  strncpy((char *)x64_sys_call + 9, "\x81\xFE\xBD\x00\x00\x00\x0F\x84\x28\x1C\x00\x00", 12); // call rax
+#endif 
 
   (*armor)->hook_is_actived = false;
 }

@@ -69,7 +69,7 @@ qemu_system() {
     if [ -f "/etc/debian_version" ]; then
       log_message "[*] Compressing initramfs"
       compact_busybox
-      local vmlinuz="/boot/vmlinuz"
+      local vmlinuz="/boot/vmlinuz-$(uname -r)"
     else 
       log_message "[*] Error: this distro not Debian-based"
       return -1
