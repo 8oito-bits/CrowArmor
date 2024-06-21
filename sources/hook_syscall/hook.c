@@ -81,7 +81,7 @@ static long hook_crow_x64_sys_call(struct pt_regs *regs, unsigned int nr) {
 
   unr = array_index_nospec(unr, NR_syscalls);
   regs->ax =
-      ((long (*)(const struct pt_regs *))crowarmor_syscall_table[nr])(regs);
+      ((long (*)(const struct pt_regs *))syscall_table[nr])(regs);
 
   return regs->ax;
 }
