@@ -5,9 +5,9 @@
 #include "syscall.h"
 #include <linux/kprobes.h>
 #include <linux/module.h>
+#include <linux/nospec.h>
 #include <linux/string.h>
 #include <linux/version.h>
-#include <linux/nospec.h>
 
 static unsigned long **old_syscall_table;
 static unsigned long **syscall_table;
@@ -63,24 +63,26 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
 }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-static void* symbol_x64_sys_call;
-// Values ​​passed as parameters into the function using registers rsi=nr_syscall, rdi=pt_regs
-static long hook_crow_x64_sys_call(struct pt_regs *regs, unsigned int nr) 
-{
+static void *symbol_x64_sys_call;
+static unsigned char x64_sys_call_recovery[23] = {};
+// Values ​​passed as parameters into the function using registers
+// rsi=nr_syscall, rdi=pt_regs
+static long hook_crow_x64_sys_call(struct pt_regs *regs, unsigned int nr) {
   /*
-	 * Convert negative numbers to very high and thus out of range
-	 * numbers for comparisons.
-	 */
-	unsigned int unr = nr;
+   * Convert negative numbers to very high and thus out of range
+   * numbers for comparisons.
+   */
+  unsigned int unr = nr;
 
   if (!likely(unr < NR_syscalls)) {
-		pr_warn("crowarmor: Syscall %i not found or does not exist", unr);
+    pr_warn("crowarmor: Syscall %i not found or does not exist", unr);
     return -1;
   }
 
   unr = array_index_nospec(unr, NR_syscalls);
-	regs->ax = ((long (*)(const struct pt_regs *))crowarmor_syscall_table[nr])(regs);
-  
+  regs->ax =
+      ((long (*)(const struct pt_regs *))crowarmor_syscall_table[nr])(regs);
+
   return regs->ax;
 }
 
@@ -92,14 +94,17 @@ static ERR hook_edit_x64_sys_call(void) {
     return ERR_FAILURE;
   }
 
+  memcpy(x64_sys_call_recovery, symbol_x64_sys_call, 23);
+
   disable_register_cr0_wp();
   // Write the modified bytes into x64_sys_call memory
-  strncpy((char *)symbol_x64_sys_call, "\x48\xB8", 2); // mov rax, hook_crow_x64_sys_call
+  strncpy((char *)symbol_x64_sys_call, "\x48\xB8",
+          2); // mov rax, hook_crow_x64_sys_call
 
-  *(unsigned long *)(symbol_x64_sys_call+2) = (unsigned long)hook_crow_x64_sys_call;
+  *(unsigned long *)(symbol_x64_sys_call + 2) =
+      (unsigned long)hook_crow_x64_sys_call;
 
-  strncpy((char *)symbol_x64_sys_call+10, "\xFF\xE0", 2); // jmp rax
-  
+  strncpy((char *)symbol_x64_sys_call + 10, "\xFF\xE0", 2); // jmp rax
   strncpy((char *)symbol_x64_sys_call + 12, "\x00\xC3", 2); // ret
 
   enable_register_cr0_wp();
@@ -107,7 +112,7 @@ static ERR hook_edit_x64_sys_call(void) {
   return ERR_SUCCESS;
 }
 
-#endif 
+#endif
 
 ERR hook_init(struct crow **crow) {
   unsigned int i;
@@ -138,12 +143,15 @@ ERR hook_init(struct crow **crow) {
          sizeof(void *) * __NR_syscalls);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-  pr_info("crowarmor: This version of the kernel was identified as no longer using sys_call_table, patching the kernel...");
-  if(IS_ERR_FAILURE(hook_edit_x64_sys_call()))
-  {
-    pr_warn("crowarmor: Error in kernel patching, sys_call_table not restored.");
+
+  pr_info("crowarmor: This version of the kernel was identified as no longer "
+          "using sys_call_table, patching the kernel...");
+  if (IS_ERR_FAILURE(hook_edit_x64_sys_call())) {
+    pr_warn(
+        "crowarmor: Error in kernel patching, sys_call_table not restored.");
     return ERR_FAILURE;
   }
+
 #endif
 
   (*crow)->hook_is_actived = true;
@@ -155,6 +163,15 @@ ERR hook_init(struct crow **crow) {
 void hook_end(void) {
   pr_warn("crowarmor: Hook syscalls shutdown ...");
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+
+  pr_info("crowarmor: Restoring an opcodes ...\n");
+  disable_register_cr0_wp();
+  memcpy(symbol_x64_sys_call, x64_sys_call_recovery, 23);
+  enable_register_cr0_wp();
+
+#endif
+
   unsigned int i;
 
   for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
@@ -162,11 +179,6 @@ void hook_end(void) {
 
   kfree(old_syscall_table);
   kfree(crowarmor_syscall_table);
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-  pr_info("crowarmor: Restoring an opcodes");
-  strncpy((char *)symbol_x64_sys_call + 9, "\x81\xFE\xBD\x00\x00\x00\x0F\x84\x28\x1C\x00\x00", 12); // call rax
-#endif 
 
   (*armor)->hook_is_actived = false;
 }
