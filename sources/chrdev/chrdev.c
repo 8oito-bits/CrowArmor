@@ -77,12 +77,20 @@ int device_release(struct inode *_inode, struct file *_file) {
 ssize_t device_read(struct file *file, char __user *buffer,
                            size_t length, loff_t *offset) 
 {    
-  int ret = copy_to_user(buffer, &(*armor)->crowarmor_is_actived, sizeof((*armor)->crowarmor_is_actived));
-  if (ret != 0) {
-      return -EFAULT;
+  char crowarmor_is_actived[2]; // Para armazenar '0' ou '1' e o caractere de nova linha '\n'
+  int crowarmor_is_actived_len;
+
+  // Obter o valor atual da variável booleana como um caractere ('0' ou '1')
+  crowarmor_is_actived[0] = (*armor)->crowarmor_is_actived ? '1' : '0';
+  crowarmor_is_actived[1] = '\n'; // Adicionar um caractere de nova linha no final
+  crowarmor_is_actived_len = 2;
+
+  // Copiar para o espaço de usuário
+  if (copy_to_user(buffer, crowarmor_is_actived, crowarmor_is_actived_len) != 0) {
+        return -EFAULT; // Em caso de erro de cópia
   }
 
-  return sizeof((*armor)->crowarmor_is_actived);
+  return crowarmor_is_actived_len;
 }
 
 /*
