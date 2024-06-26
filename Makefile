@@ -65,13 +65,11 @@ help:
 
 install: check_driver
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Installing drivers ..."
-	@sudo modprobe $(DRIVER_PATH)
 	@sudo insmod $(DRIVER_PATH)
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Drivers Installed Successfully ..."
 
 uninstall: check_driver
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Uninstalling driver ..."
-	@sudo modprobe -r $(DRIVER_PATH)
 	@sudo rmmod crowarmor
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Driver Uninstalled Successfully ..."
 
