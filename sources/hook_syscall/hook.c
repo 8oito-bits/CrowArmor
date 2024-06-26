@@ -67,8 +67,8 @@ static void *symbol_x64_sys_call;
 static unsigned char x64_sys_call_recovery[12] = {};
 // Values ​​passed as parameters into the function using registers
 // rsi=nr_syscall, rdi=pt_regs
-static long hook_call_x64_sys_call_table(struct pt_regs *regs, unsigned int nr)
-{
+static long hook_call_x64_sys_call_table(struct pt_regs *regs,
+                                         unsigned int nr) {
   /*
    * Convert negative numbers to very high and thus out of range
    * numbers for comparisons.
@@ -81,14 +81,12 @@ static long hook_call_x64_sys_call_table(struct pt_regs *regs, unsigned int nr)
   }
 
   unr = array_index_nospec(unr, NR_syscalls);
-  regs->ax =
-      ((long (*)(const struct pt_regs *))syscall_table[nr])(regs);
+  regs->ax = ((long (*)(const struct pt_regs *))syscall_table[nr])(regs);
 
   return regs->ax;
 }
 
-ERR hook_sys_call_table_x64(void)
-{
+ERR hook_sys_call_table_x64(void) {
   symbol_x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
   if (!symbol_x64_sys_call) {
@@ -113,8 +111,7 @@ ERR hook_sys_call_table_x64(void)
   return ERR_SUCCESS;
 }
 
-void hook_remove_sys_call_table_x64(void) 
-{
+void hook_remove_sys_call_table_x64(void) {
   pr_info("crowarmor: Removing patch kernel sys_call_table ...\n");
   disable_register_cr0_wp();
   memcpy(symbol_x64_sys_call, x64_sys_call_recovery, 12);
@@ -156,7 +153,8 @@ ERR hook_init(struct crow **crow) {
   pr_info("crowarmor: This version of the kernel was identified as no longer "
           "using sys_call_table, patching the kernel...");
   if (IS_ERR_FAILURE(hook_sys_call_table_x64())) {
-    pr_warn("crowarmor: Error in kernel patching, sys_call_table not restored.");
+    pr_warn(
+        "crowarmor: Error in kernel patching, sys_call_table not restored.");
     return ERR_FAILURE;
   }
 

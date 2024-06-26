@@ -24,4 +24,4 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) notrace;
 ERR hook_sys_call_table_x64(void) notrace;
 void hook_remove_sys_call_table_x64(void) notrace;
 
-#endif 
+#endif

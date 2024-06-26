@@ -12,8 +12,8 @@
 #include <linux/uaccess.h> /* for get_user and put_user */
 #include <linux/version.h>
 
-#include "hook_syscall/hook.h"
 #include "err/err.h"
+#include "hook_syscall/hook.h"
 #include "io/ioctl.h"
 
 static __always_inline int device_open(struct inode *, struct file *);
@@ -28,7 +28,7 @@ device_ioctl(struct file *file,      /* ditto */
              unsigned int ioctl_num, /* number and param for ioctl */
              unsigned long ioctl_param);
 
-static struct class *cls; /* class for create /dev/<name> */
+static struct class *cls;   /* class for create /dev/<name> */
 static struct crow **armor; /* manipulate driver states */
 
 static struct file_operations fops = {
@@ -74,11 +74,10 @@ int device_release(struct inode *_inode, struct file *_file) {
   return ERR_SUCCESS;
 }
 
-ssize_t device_read(struct file *file, char __user *buffer,
-                           size_t length, loff_t *offset) 
-{ 
+ssize_t device_read(struct file *file, char __user *buffer, size_t length,
+                    loff_t *offset) {
   if (*offset >= 2) {
-    return 0; 
+    return 0;
   }
 
   char crowarmor_is_actived[2];
@@ -86,7 +85,8 @@ ssize_t device_read(struct file *file, char __user *buffer,
   crowarmor_is_actived[1] = '\n';
   int crowarmor_is_actived_len = 2;
 
-  if (copy_to_user(buffer, crowarmor_is_actived, crowarmor_is_actived_len) != 0) {
+  if (copy_to_user(buffer, crowarmor_is_actived, crowarmor_is_actived_len) !=
+      0) {
     return -EFAULT;
   }
 
@@ -96,54 +96,66 @@ ssize_t device_read(struct file *file, char __user *buffer,
 }
 
 /*
-The kernel uses our driver indirectly, so to be able to remove our driver 
-you first need to disable some states of the crowarmor driver, so if the driver 
+The kernel uses our driver indirectly, so to be able to remove our driver
+you first need to disable some states of the crowarmor driver, so if the driver
 is in use the kernel will prevent it from being removed.
 
-Note: removing the driver directly without disabling the states can 
+Note: removing the driver directly without disabling the states can
 be harmful to the kernel, causing kernel panic in some versions
 */
 ssize_t device_write(struct file *file, const char __user *buffer,
-                     size_t length, loff_t *offset) 
-{  
-  int ret = copy_to_user(&(*armor)->crowarmor_is_actived, buffer, sizeof((*armor)->crowarmor_is_actived));
-  if (ret != 0) {
-      return -EFAULT;
+                     size_t length, loff_t *offset) {
+
+  char input_value;
+
+  if (length != 1) {
+    return -EINVAL;
   }
 
-// Manipulate driver states by disabling and enabling
+  if (copy_from_user(&input_value, buffer, 1) != 0) {
+    return -EFAULT; 
+  }
+
+  if (!(input_value == '0') || !(input_value == '1')) 
+    return -EINVAL; 
+  
+  (*armor)->crowarmor_is_actived = (input_value == '1') ? true : false;  
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-  if(!(*armor)->crowarmor_is_actived)
-  {
+  if (!(*armor)->crowarmor_is_actived) {
     pr_info("crowarmor: Disabling driver states");
     hook_remove_sys_call_table_x64();
-  }
-  else
-  {
+  } else {
     pr_info("crowarmor: Enabling driver states");
     hook_sys_call_table_x64();
   }
-#endif 
-
-  return sizeof((*armor)->crowarmor_is_actived);
+#endif
 }
 
 __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
                                   unsigned long ioctl_param) {
   long retval = ERR_SUCCESS;
 
-  // copy armor
-  struct crow crow = *(*armor);
-
   switch (ioctl_num) {
   case IOCTL_READ_CROW:
-    if (copy_to_user((struct crow *)ioctl_param, &crow, sizeof(crow))) {
-      pr_alert("crowarmor: Error copy to user 'crowarmor struct'");
+    if (copy_to_user((struct crow *)ioctl_param, &*(*armor),
+                     sizeof(*(*armor)))) {
+      pr_alert("crowarmor: Error copy to user 'crowarmor struct'\n");
+      retval = ERR_FAILURE;
+    }
+    break;
+
+  case IOCTL_WRITE_CROW_STATES:
+    if (copy_to_user((_Bool *)(*armor)->inspector_is_actived,
+                     &*(_Bool *)ioctl_param, sizeof(_Bool))) {
+      pr_alert("crowarmor: Error write to 'inspector_is_actived'\n");
       retval = ERR_FAILURE;
     }
     break;
 
   default:
+    pr_alert("crowarmor: Operation IOCTL not found\n");
+    retval = ERR_FAILURE;
     break;
   }
 
