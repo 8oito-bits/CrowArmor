@@ -1,4 +1,4 @@
-#include "hook.h"
+#include "hook_syscall/hook.h"
 #include "control_registers/cr0.h"
 #include "crowarmor/datacrow.h"
 #include "kpobres/kallsyms_lookup.h"
@@ -7,7 +7,6 @@
 #include <linux/module.h>
 #include <linux/nospec.h>
 #include <linux/string.h>
-#include <linux/version.h>
 
 static unsigned long **old_syscall_table;
 static unsigned long **syscall_table;
@@ -63,11 +62,13 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
 }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+
 static void *symbol_x64_sys_call;
-static unsigned char x64_sys_call_recovery[23] = {};
+static unsigned char x64_sys_call_recovery[12] = {};
 // Values ​​passed as parameters into the function using registers
 // rsi=nr_syscall, rdi=pt_regs
-static long hook_crow_x64_sys_call(struct pt_regs *regs, unsigned int nr) {
+static long hook_call_x64_sys_call_table(struct pt_regs *regs, unsigned int nr)
+{
   /*
    * Convert negative numbers to very high and thus out of range
    * numbers for comparisons.
@@ -86,7 +87,8 @@ static long hook_crow_x64_sys_call(struct pt_regs *regs, unsigned int nr) {
   return regs->ax;
 }
 
-static ERR hook_edit_x64_sys_call(void) {
+ERR hook_sys_call_table_x64(void)
+{
   symbol_x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
   if (!symbol_x64_sys_call) {
@@ -94,22 +96,29 @@ static ERR hook_edit_x64_sys_call(void) {
     return ERR_FAILURE;
   }
 
-  memcpy(x64_sys_call_recovery, symbol_x64_sys_call, 23);
+  memcpy(x64_sys_call_recovery, symbol_x64_sys_call, 12);
 
   disable_register_cr0_wp();
   // Write the modified bytes into x64_sys_call memory
   strncpy((char *)symbol_x64_sys_call, "\x48\xB8",
-          2); // mov rax, hook_crow_x64_sys_call
+          2); // mov rax, [hook_call_x64_sys_call_table]
 
   *(unsigned long *)(symbol_x64_sys_call + 2) =
-      (unsigned long)hook_crow_x64_sys_call;
+      (unsigned long)hook_call_x64_sys_call_table;
 
   strncpy((char *)symbol_x64_sys_call + 10, "\xFF\xE0", 2); // jmp rax
-  strncpy((char *)symbol_x64_sys_call + 12, "\x00\xC3", 2); // ret
 
   enable_register_cr0_wp();
 
   return ERR_SUCCESS;
+}
+
+void hook_remove_sys_call_table_x64(void) 
+{
+  pr_info("crowarmor: Removing patch kernel sys_call_table ...\n");
+  disable_register_cr0_wp();
+  memcpy(symbol_x64_sys_call, x64_sys_call_recovery, 12);
+  enable_register_cr0_wp();
 }
 
 #endif
@@ -146,9 +155,8 @@ ERR hook_init(struct crow **crow) {
 
   pr_info("crowarmor: This version of the kernel was identified as no longer "
           "using sys_call_table, patching the kernel...");
-  if (IS_ERR_FAILURE(hook_edit_x64_sys_call())) {
-    pr_warn(
-        "crowarmor: Error in kernel patching, sys_call_table not restored.");
+  if (IS_ERR_FAILURE(hook_sys_call_table_x64())) {
+    pr_warn("crowarmor: Error in kernel patching, sys_call_table not restored.");
     return ERR_FAILURE;
   }
 
@@ -163,18 +171,7 @@ ERR hook_init(struct crow **crow) {
 void hook_end(void) {
   pr_warn("crowarmor: Hook syscalls shutdown ...");
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-
-  pr_info("crowarmor: Restoring an opcodes ...\n");
-  disable_register_cr0_wp();
-  memcpy(symbol_x64_sys_call, x64_sys_call_recovery, 23);
-  enable_register_cr0_wp();
-
-#endif
-
-  unsigned int i;
-
-  for (i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
+  for (unsigned int i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);
 
   kfree(old_syscall_table);

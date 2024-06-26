@@ -12,6 +12,7 @@
 #include <linux/uaccess.h> /* for get_user and put_user */
 #include <linux/version.h>
 
+#include "hook_syscall/hook.h"
 #include "err/err.h"
 #include "io/ioctl.h"
 
@@ -28,7 +29,7 @@ device_ioctl(struct file *file,      /* ditto */
              unsigned long ioctl_param);
 
 static struct class *cls; /* class for create /dev/<name> */
-static struct crow **armor;
+static struct crow **armor; /* manipulate driver states */
 
 static struct file_operations fops = {
     .read = device_read,
@@ -73,14 +74,48 @@ int device_release(struct inode *_inode, struct file *_file) {
   return ERR_SUCCESS;
 }
 
-ssize_t device_read(struct file *_file, char __user *_user, size_t,
-                    loff_t *_loff) {
-  return -EPERM;
+ssize_t device_read(struct file *file, char __user *buffer,
+                           size_t length, loff_t *offset) 
+{    
+  int ret = copy_to_user(buffer, &(*armor)->crowarmor_is_actived, sizeof((*armor)->crowarmor_is_actived));
+  if (ret != 0) {
+      return -EFAULT;
+  }
+
+  return sizeof((*armor)->crowarmor_is_actived);
 }
 
+/*
+The kernel uses our driver indirectly, so to be able to remove our driver 
+you first need to disable some states of the crowarmor driver, so if the driver 
+is in use the kernel will prevent it from being removed.
+
+Note: removing the driver directly without disabling the states can 
+be harmful to the kernel, causing kernel panic in some versions
+*/
 ssize_t device_write(struct file *file, const char __user *buffer,
-                     size_t length, loff_t *offset) {
-  return -EPERM;
+                     size_t length, loff_t *offset) 
+{  
+  int ret = copy_to_user(&(*armor)->crowarmor_is_actived, buffer, sizeof((*armor)->crowarmor_is_actived));
+  if (ret != 0) {
+      return -EFAULT;
+  }
+
+// Manipulate driver states by disabling and enabling
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+  if(!(*armor)->crowarmor_is_actived)
+  {
+    pr_info("crowarmor: Disabling driver states");
+    hook_remove_sys_call_table_x64();
+  }
+  else
+  {
+    pr_info("crowarmor: Enabling driver states");
+    hook_sys_call_table_x64();
+  }
+#endif 
+
+  return sizeof((*armor)->crowarmor_is_actived);
 }
 
 __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
@@ -149,6 +184,8 @@ int __must_check chrdev_init(struct crow **crow) {
   pr_info("crowarmor: Device created on /dev/%s\n", platform.driver.name);
 
   (*crow)->chrdev_is_actived = true;
+  (*crow)->crowarmor_is_actived = true;
+
   armor = crow;
 
 _retval:

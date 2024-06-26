@@ -39,9 +39,9 @@ int __init init_module(void) {
 
 void __exit cleanup_module(void) {
   pr_warn("crowarmor: Shutdown driver crowarmor\n");
-  hook_end();
   chrdev_end();
   inspector_end();
+  hook_end();
   crow_end(&crow);
 }
 

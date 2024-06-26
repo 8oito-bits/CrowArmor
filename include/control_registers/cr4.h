@@ -27,13 +27,13 @@
  * Enable Protection Keys for Supervisor-Mode Pages                   |
  */
 
-const unsigned long get_cr4(void);
-void set_cr4(unsigned long cr4);
+const unsigned long get_cr4(void) notrace;
+void set_cr4(unsigned long cr4) notrace;
 
 /**
  * | Bit | Label | Description           |
  * | --- | ----- | --------------------- |
  * |  1  | PVI    |  Protected-mode Virtual Interrupts  |
  */
-void enable_register_cr4_pvi(void);
-void disable_register_cr4_pvi(void);
+void enable_register_cr4_pvi(void) notrace;
+void disable_register_cr4_pvi(void) notrace;

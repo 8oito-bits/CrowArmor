@@ -23,7 +23,7 @@ struct crow **armor;
 ERR inspector_init(struct crow **crow) {
   ERR retval = ERR_SUCCESS;
 
-  inspector_thread = kthread_run(inspector_thread_function, NULL, "TInspector");
+  inspector_thread = kthread_run(inspector_thread_function, NULL, "crowarmor/inspector/thread");
   if (!inspector_thread)
     retval = ERR_FAILURE;
 
