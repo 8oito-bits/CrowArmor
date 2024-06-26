@@ -76,19 +76,21 @@ int device_release(struct inode *_inode, struct file *_file) {
 
 ssize_t device_read(struct file *file, char __user *buffer,
                            size_t length, loff_t *offset) 
-{    
-  char crowarmor_is_actived[2]; // Para armazenar '0' ou '1' e o caractere de nova linha '\n'
-  int crowarmor_is_actived_len;
-
-  // Obter o valor atual da variável booleana como um caractere ('0' ou '1')
-  crowarmor_is_actived[0] = (*armor)->crowarmor_is_actived ? '1' : '0';
-  crowarmor_is_actived[1] = '\n'; // Adicionar um caractere de nova linha no final
-  crowarmor_is_actived_len = 2;
-
-  // Copiar para o espaço de usuário
-  if (copy_to_user(buffer, crowarmor_is_actived, crowarmor_is_actived_len) != 0) {
-        return -EFAULT; // Em caso de erro de cópia
+{ 
+  if (*offset >= 2) {
+    return 0; 
   }
+
+  char crowarmor_is_actived[2];
+  crowarmor_is_actived[0] = (*armor)->crowarmor_is_actived ? '1' : '0';
+  crowarmor_is_actived[1] = '\n';
+  int crowarmor_is_actived_len = 2;
+
+  if (copy_to_user(buffer, crowarmor_is_actived, crowarmor_is_actived_len) != 0) {
+    return -EFAULT;
+  }
+
+  *offset += crowarmor_is_actived_len;
 
   return crowarmor_is_actived_len;
 }
