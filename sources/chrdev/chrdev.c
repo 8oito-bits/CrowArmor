@@ -114,12 +114,9 @@ ssize_t device_write(struct file *file, const char __user *buffer,
 
   if (copy_from_user(&input_value, buffer, 1) != 0) {
     return -EFAULT; 
-  }
-
-  if (!(input_value == '0') || !(input_value == '1')) 
-    return -EINVAL; 
+  } 
   
-  (*armor)->crowarmor_is_actived = (input_value == '1') ? true : false;  
+  (*armor)->crowarmor_is_actived = (input_value >= '1') ? true : false;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
   if (!(*armor)->crowarmor_is_actived) {
@@ -154,8 +151,6 @@ __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
     break;
 
   default:
-    pr_alert("crowarmor: Operation IOCTL not found\n");
-    retval = ERR_FAILURE;
     break;
   }
 
