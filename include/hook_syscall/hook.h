@@ -15,9 +15,9 @@ struct hook_syscall {
 __must_check ERR hook_init(struct crow **crow) notrace;
 void hook_end(void) notrace;
 
-__must_check void *hook_get_old_syscall(int) notrace;
+__must_check void *hook_get_old_syscall(unsigned int) notrace;
 void hook_remove_unknown_syscall(struct hook_syscall *) notrace;
-void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) notrace;
+void hook_check_hooked_syscall(struct hook_syscall *, unsigned int) notrace;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 

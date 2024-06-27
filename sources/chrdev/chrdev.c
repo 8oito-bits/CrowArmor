@@ -77,7 +77,9 @@ int device_release(struct inode *_inode, struct file *_file) {
 ssize_t device_read(struct file *file, char __user *buffer, size_t length,
                     loff_t *offset) {
   if (*offset >= 2) {
-    return 0;
+    pr_info(
+        "crowarmor: Function device_read already executed once, skipping...");
+    return -EINVAL;
   }
 
   char crowarmor_is_actived[2];
@@ -105,26 +107,39 @@ be harmful to the kernel, causing kernel panic in some versions
 */
 ssize_t device_write(struct file *file, const char __user *buffer,
                      size_t length, loff_t *offset) {
-
   char input_value;
 
+  if (*offset >= 1) {
+    pr_info(
+        "crowarmor: Function device_write already executed once, skipping...");
+    return -EINVAL;
+  }
+
   if (copy_from_user(&input_value, buffer, 1) != 0) {
-    return -EFAULT; 
-  } 
-  
+    return -EFAULT;
+  }
+
   (*armor)->crowarmor_is_actived = (input_value >= '1') ? true : false;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
   if ((*armor)->crowarmor_is_actived) {
     pr_info("crowarmor: Enabling driver states");
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+
     hook_sys_call_table_x64();
+
+#endif
   } else {
     pr_info("crowarmor: Disabling driver states");
-    hook_remove_sys_call_table_x64();
-  }
-#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 
-  return sizeof((*armor)->crowarmor_is_actived);
+    hook_remove_sys_call_table_x64();
+
+#endif
+  }
+
+  *offset += 1;
+
+  return length;
 }
 
 __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,

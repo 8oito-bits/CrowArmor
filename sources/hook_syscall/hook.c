@@ -47,9 +47,9 @@ void hook_remove_unknown_syscall(struct hook_syscall *syscall) {
   enable_register_cr0_wp();
 }
 
-void *hook_get_old_syscall(int idx) { return old_syscall_table[idx]; }
+void *hook_get_old_syscall(unsigned int idx) { return old_syscall_table[idx]; }
 
-void hook_check_hooked_syscall(struct hook_syscall *syscall, int idx) {
+void hook_check_hooked_syscall(struct hook_syscall *syscall, unsigned int idx) {
   syscall->unknown_hook = false;
 
   if (syscall_table[idx] != crowarmor_syscall_table[idx]) {
