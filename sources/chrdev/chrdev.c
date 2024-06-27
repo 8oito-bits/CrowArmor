@@ -77,9 +77,7 @@ int device_release(struct inode *_inode, struct file *_file) {
 ssize_t device_read(struct file *file, char __user *buffer, size_t length,
                     loff_t *offset) {
   if (*offset >= 2) {
-    pr_info(
-        "crowarmor: Function device_read already executed once, skipping...");
-    return -EINVAL;
+    return 0;
   }
 
   char crowarmor_is_actived[2];
