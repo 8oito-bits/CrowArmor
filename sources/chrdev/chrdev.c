@@ -127,7 +127,7 @@ ssize_t device_write(struct file *file, const char __user *buffer,
     if (!try_module_get(THIS_MODULE)){
       pr_info("crowarmor: Error in increment references in use kernel module");
       hook_remove_sys_call_table_x64();
-      return -1;
+      return -EFAULT;
     }
 
 #endif
