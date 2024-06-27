@@ -108,10 +108,6 @@ ssize_t device_write(struct file *file, const char __user *buffer,
 
   char input_value;
 
-  if (length != 1) {
-    return -EINVAL;
-  }
-
   if (copy_from_user(&input_value, buffer, 1) != 0) {
     return -EFAULT; 
   } 
@@ -119,12 +115,12 @@ ssize_t device_write(struct file *file, const char __user *buffer,
   (*armor)->crowarmor_is_actived = (input_value >= '1') ? true : false;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-  if (!(*armor)->crowarmor_is_actived) {
-    pr_info("crowarmor: Disabling driver states");
-    hook_remove_sys_call_table_x64();
-  } else {
+  if ((*armor)->crowarmor_is_actived) {
     pr_info("crowarmor: Enabling driver states");
     hook_sys_call_table_x64();
+  } else {
+    pr_info("crowarmor: Disabling driver states");
+    hook_remove_sys_call_table_x64();
   }
 #endif
 
