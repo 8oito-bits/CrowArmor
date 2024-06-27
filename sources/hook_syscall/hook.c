@@ -87,6 +87,7 @@ static long hook_call_x64_sys_call_table(struct pt_regs *regs,
 }
 
 ERR hook_sys_call_table_x64(void) {
+  pr_info("crowarmor: Adding sys_call_table kernel patch");
   symbol_x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
   if (!symbol_x64_sys_call) {
@@ -112,7 +113,7 @@ ERR hook_sys_call_table_x64(void) {
 }
 
 void hook_remove_sys_call_table_x64(void) {
-  pr_info("crowarmor: Removing patch kernel sys_call_table ...\n");
+  pr_warn("crowarmor: Removing sys_call_table kernel patch ...\n");
   disable_register_cr0_wp();
   memcpy(symbol_x64_sys_call, x64_sys_call_recovery, 12);
   enable_register_cr0_wp();

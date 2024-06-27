@@ -129,7 +129,7 @@ ssize_t device_write(struct file *file, const char __user *buffer,
 
 #endif
   } else {
-    pr_info("crowarmor: Disabling driver states");
+    pr_info("crowarmor: Disabling driver states (Some features may no longer work)");
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 
     hook_remove_sys_call_table_x64();
