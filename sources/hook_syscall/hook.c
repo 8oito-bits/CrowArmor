@@ -158,6 +158,11 @@ ERR hook_init(struct crow **crow) {
         "crowarmor: Error in kernel patching, sys_call_table not restored.");
     return ERR_FAILURE;
   }
+  if (!try_module_get(THIS_MODULE)){
+      pr_info("crowarmor: Error in increment references in use kernel module");
+      hook_remove_sys_call_table_x64();
+      return ERR_FAILURE;
+  }
 
 #endif
 

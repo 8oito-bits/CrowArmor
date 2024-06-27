@@ -122,8 +122,13 @@ ssize_t device_write(struct file *file, const char __user *buffer,
   if ((*armor)->crowarmor_is_actived) {
     pr_info("crowarmor: Enabling driver states");
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-
+    
     hook_sys_call_table_x64();
+    if (!try_module_get(THIS_MODULE)){
+      pr_info("crowarmor: Error in increment references in use kernel module");
+      hook_remove_sys_call_table_x64();
+      return -1;
+    }
 
 #endif
   } else {
@@ -131,6 +136,7 @@ ssize_t device_write(struct file *file, const char __user *buffer,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 
     hook_remove_sys_call_table_x64();
+    module_put(THIS_MODULE);
 
 #endif
   }
