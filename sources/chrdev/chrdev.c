@@ -127,6 +127,8 @@ ssize_t device_write(struct file *file, const char __user *buffer,
     hook_sys_call_table_x64();
   }
 #endif
+
+  return sizeof((*armor)->crowarmor_is_actived);
 }
 
 __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
