@@ -105,19 +105,26 @@ be harmful to the kernel, causing kernel panic in some versions
 */
 ssize_t device_write(struct file *file, const char __user *buffer,
                      size_t length, loff_t *offset) {
-  char input_value;
+  char crowarmor_input;
 
   if (*offset >= 1) {
-    pr_info(
+    pr_warn(
         "crowarmor: Function device_write already executed once, skipping...");
     return -EINVAL;
   }
 
-  if (copy_from_user(&input_value, buffer, 1) != 0) {
+  if (copy_from_user(&crowarmor_input, buffer, 1) != 0) {
     return -EFAULT;
   }
 
-  (*armor)->crowarmor_is_actived = (input_value >= '1') ? true : false;
+  if(((*armor)->crowarmor_is_actived && (crowarmor_input >= '1')) || 
+      (!(*armor)->crowarmor_is_actived && (crowarmor_input <= '0'))){
+    pr_warn(
+        "crowarmor: Driver has already been set to %i", crowarmor_input);
+    return -EINVAL;
+  }
+
+  (*armor)->crowarmor_is_actived = (crowarmor_input >= '1') ? true : false;
 
   if ((*armor)->crowarmor_is_actived) {
     pr_info("crowarmor: Enabling driver states");
