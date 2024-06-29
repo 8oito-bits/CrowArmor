@@ -69,6 +69,10 @@ static unsigned char x64_sys_call_recovery[12] = {};
 // rsi=nr_syscall, rdi=pt_regs
 static long hook_call_x64_sys_call_table(struct pt_regs *regs,
                                          unsigned int nr) {
+  if(!(*armor)->crowarmor_is_actived){
+    pr_warn("crowarmor: Driver state disabled, syscall %i not called\n", nr);
+    return -1;
+  }
   /*
    * Convert negative numbers to very high and thus out of range
    * numbers for comparisons.
@@ -76,7 +80,7 @@ static long hook_call_x64_sys_call_table(struct pt_regs *regs,
   unsigned int unr = nr;
 
   if (!likely(unr < NR_syscalls)) {
-    pr_warn("crowarmor: Syscall %i not found or does not exist", unr);
+    pr_warn("crowarmor: Syscall %i not found or does not exist\n", unr);
     return -1;
   }
 
@@ -87,7 +91,7 @@ static long hook_call_x64_sys_call_table(struct pt_regs *regs,
 }
 
 ERR hook_sys_call_table_x64(void) {
-  pr_info("crowarmor: Adding sys_call_table kernel patch");
+  pr_info("crowarmor: Adding sys_call_table kernel patch\n");
   symbol_x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
   if (!symbol_x64_sys_call) {
@@ -127,7 +131,7 @@ ERR hook_init(struct crow **crow) {
   syscall_table = (unsigned long **)kallsyms_lookup_name("sys_call_table");
 
   if (syscall_table == NULL) {
-    pr_info("crowarmor: Failed to get syscall table");
+    pr_info("crowarmor: Failed to get syscall table\n");
     return ERR_FAILURE;
   }
 
@@ -152,14 +156,14 @@ ERR hook_init(struct crow **crow) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 
   pr_info("crowarmor: This version of the kernel was identified as no longer "
-          "using sys_call_table, patching the kernel...");
+          "using sys_call_table, patching the kernel...\n");
   if (IS_ERR_FAILURE(hook_sys_call_table_x64())) {
     pr_warn(
-        "crowarmor: Error in kernel patching, sys_call_table not restored.");
+        "crowarmor: Error in kernel patching, sys_call_table not restored\n");
     return ERR_FAILURE;
   }
   if (!try_module_get(THIS_MODULE)){
-      pr_info("crowarmor: Error in increment references in use kernel module");
+      pr_info("crowarmor: Error in increment references in use kernel module\n");
       hook_remove_sys_call_table_x64();
       return ERR_FAILURE;
   }
@@ -173,7 +177,7 @@ ERR hook_init(struct crow **crow) {
 }
 
 void hook_end(void) {
-  pr_warn("crowarmor: Hook syscalls shutdown ...");
+  pr_warn("crowarmor: Hook syscalls shutdown ...\n");
 
   for (unsigned int i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);

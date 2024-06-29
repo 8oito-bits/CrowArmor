@@ -3,7 +3,7 @@ KDIR = /lib/modules/$(shell uname -r)/build
 DRIVER_PATH = $(PWD)/sources/crowarmor/crowarmor.ko
 
 # Variables for kernel version >= 6.8.0
-SLEEP_TIME_FOR_DEATH = $(shell expr `ps -e | wc -l` \* 6)
+SLEEP_TIME_FOR_DEATH = $(shell expr `ps -e | wc -l`)
 KERNEL_VERSION := $(shell uname -r | awk -F. '{ printf "%d%02d%02d", $$1,$$2,$$3 }')
 MIN_KERNEL_VERSION := 60800  # 6.8.0
 
