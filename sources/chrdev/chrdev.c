@@ -120,7 +120,7 @@ ssize_t device_write(struct file *file, const char __user *buffer,
   if(((*armor)->crowarmor_is_actived && (crowarmor_input >= '1')) || 
       (!(*armor)->crowarmor_is_actived && (crowarmor_input <= '0'))){
     pr_warn(
-        "crowarmor: Driver has already been set to %i\n", crowarmor_input);
+        "crowarmor: Driver has already been set to %i\n", (*armor)->crowarmor_is_actived);
     return -EINVAL;
   }
 
@@ -130,7 +130,12 @@ ssize_t device_write(struct file *file, const char __user *buffer,
     pr_info("crowarmor: Enabling driver states\n");
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
     
-    hook_sys_call_table_x64();
+    if (IS_ERR_FAILURE(hook_sys_call_table_x64())) {
+      pr_warn(
+          "crowarmor: Error in kernel patching, sys_call_table not restored\n");
+      return -EFAULT;
+    }
+    
     if (!try_module_get(THIS_MODULE)){
       pr_info("crowarmor: Error in increment references in use kernel module\n");
       hook_remove_sys_call_table_x64();

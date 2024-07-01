@@ -3,6 +3,7 @@
 #include "crowarmor/datacrow.h"
 #include "kpobres/kallsyms_lookup.h"
 #include "syscall.h"
+
 #include <linux/kprobes.h>
 #include <linux/module.h>
 #include <linux/nospec.h>
@@ -47,7 +48,7 @@ void hook_remove_unknown_syscall(struct hook_syscall *syscall) {
   enable_register_cr0_wp();
 }
 
-void *hook_get_old_syscall(unsigned int idx) { return old_syscall_table[idx]; }
+const void *hook_get_old_syscall(unsigned int idx) { return old_syscall_table[idx]; }
 
 void hook_check_hooked_syscall(struct hook_syscall *syscall, unsigned int idx) {
   syscall->unknown_hook = false;
@@ -67,16 +68,13 @@ static void *symbol_x64_sys_call;
 static unsigned char x64_sys_call_recovery[12] = {};
 // Values ​​passed as parameters into the function using registers
 // rsi=nr_syscall, rdi=pt_regs
-static long hook_call_x64_sys_call_table(struct pt_regs *regs,
+static const long hook_call_x64_sys_call_table(struct pt_regs *regs,
                                          unsigned int nr) {
   if(!(*armor)->crowarmor_is_actived){
     pr_warn("crowarmor: Driver state disabled, syscall %i not called\n", nr);
     return -1;
   }
-  /*
-   * Convert negative numbers to very high and thus out of range
-   * numbers for comparisons.
-   */
+
   unsigned int unr = nr;
 
   if (!likely(unr < NR_syscalls)) {
@@ -90,7 +88,7 @@ static long hook_call_x64_sys_call_table(struct pt_regs *regs,
   return regs->ax;
 }
 
-ERR hook_sys_call_table_x64(void) {
+const ERR hook_sys_call_table_x64(void) {
   pr_info("crowarmor: Adding sys_call_table kernel patch\n");
   symbol_x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 

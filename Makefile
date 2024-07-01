@@ -2,10 +2,6 @@
 KDIR = /lib/modules/$(shell uname -r)/build
 DRIVER_PATH = $(PWD)/sources/crowarmor/crowarmor.ko
 
-# Variables for kernel version >= 6.8.0
-SLEEP_TIME_FOR_DEATH = $(shell expr `ps -e | wc -l`)
-KERNEL_VERSION := $(shell uname -r | awk -F. '{ printf "%d%02d%02d", $$1,$$2,$$3 }')
-MIN_KERNEL_VERSION := 60800  # 6.8.0
 
 # Default variables for Makefile in Linux
 obj-m += sources/crowarmor/crowarmor.o
@@ -78,13 +74,6 @@ uninstall: check_driver
 	@if [ $$(sudo cat /dev/crowarmor) -eq 1 ]; then \
     	sudo sh -c 'echo 0 > /dev/crowarmor' ;\
 	fi
-
-# Verify this kernel version bigger or equal 6.8.0 for remove driver with safety
-	@if [ $(KERNEL_VERSION) -ge $(MIN_KERNEL_VERSION) ]; then \
-    		echo "$(RESET)$(BLUE)[*]$(RESET) Based on processes and kernel >= 6.8.0, wait $(SLEEP_TIME_FOR_DEATH)s for security ..."; \
-    		sleep $(SLEEP_TIME_FOR_DEATH); \
-	fi
-
 	@sudo rmmod crowarmor
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Driver Uninstalled Successfully ..."
 
