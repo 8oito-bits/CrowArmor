@@ -6,3 +6,5 @@
 
 const ERR __must_check crow_init(struct crow **crow) notrace;
 void crow_end(struct crow **crow) notrace;
+void crow_enable_state(void);
+void crow_disable_state(void);

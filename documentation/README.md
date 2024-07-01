@@ -10,7 +10,7 @@ This document provides a comprehensive overview of the functionality and compone
 
 ## Installation
 
-To install crowarmor, follow the commands below. Ensure that you have GCC version 12 installed for proper compilation. Clone crowarmor dependencies, with Lunatik being a current requirement for extending and scripting in the kernel using LUA scripts.
+To install crowarmor, follow the commands below.
 
 ```sh
 make          # Compile crowarmor
@@ -43,8 +43,7 @@ make uninstall  # Remove crowarmor module
 ```
 
 > [!WARNING]
-> Kernel versions greater than or equal to 6.8.0 need to wait a while before removing the driver completely, because in these versions the kernel uses our driver indirectly, the driver patches the kernel function making it use the sys_call_table again so we calculate the time needed to safely remove the driver.
-
+> Kernel versions greater than or equal to 6.8.0 need to wait a while before removing the driver completely, because in these versions the kernel uses our driver indirectly, the driver patches the kernel function making it use the sys_call_table. 
 ## Organizational Folders
 
 <pre>

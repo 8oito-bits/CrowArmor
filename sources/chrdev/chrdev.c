@@ -12,6 +12,7 @@
 #include <linux/uaccess.h> /* for get_user and put_user */
 #include <linux/version.h>
 
+#include "crowarmor/crow.h"
 #include "err/err.h"
 #include "hook_syscall/hook.h"
 #include "io/ioctl.h"
@@ -124,7 +125,7 @@ ssize_t device_write(struct file *file, const char __user *buffer,
     return -EINVAL;
   }
 
-  (*armor)->crowarmor_is_actived = (crowarmor_input >= '1') ? true : false;
+  (crowarmor_input >= '1') ? crow_enable_state() : crow_disable_state();
 
   if ((*armor)->crowarmor_is_actived) {
     pr_info("crowarmor: Enabling driver states\n");
@@ -135,7 +136,7 @@ ssize_t device_write(struct file *file, const char __user *buffer,
           "crowarmor: Error in kernel patching, sys_call_table not restored\n");
       return -EFAULT;
     }
-    
+
     if (!try_module_get(THIS_MODULE)){
       pr_info("crowarmor: Error in increment references in use kernel module\n");
       hook_remove_sys_call_table_x64();
@@ -171,10 +172,10 @@ __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
     }
     break;
 
-  case IOCTL_WRITE_CROW_STATES:
-    if (copy_to_user((_Bool *)(*armor)->inspector_is_actived,
+  case IOCTL_WRITE_CROW_STATE:
+    if (copy_to_user((_Bool *)(*armor)->crowarmor_is_actived,
                      &*(_Bool *)ioctl_param, sizeof(_Bool))) {
-      pr_alert("crowarmor: Error write to 'inspector_is_actived'\n");
+      pr_alert("crowarmor: Error write to 'crowarmor_is_actived'\n");
       retval = ERR_FAILURE;
     }
     break;
