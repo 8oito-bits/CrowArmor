@@ -62,7 +62,13 @@ Changes should be tested by somebody other than the developer who wrote the code
     - Arch Linux
     - Artix
 - [x] Kernel Version 6.0.0
+    - 6.9.7-arch1-1
+    - 6.8.0-36-generic
     - 6.8.0-35-generic
+    - 6.5.0-060500-generic
+    - 6.3.0-060300-generic
+    - 6.2.0-060200-generic
+    - 6.1.0-060-100-generic
     - 6.0.0-060000
 - [x] Kernel Version 5.0.0
     - 5.0.5-050005-generic
