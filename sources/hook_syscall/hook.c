@@ -65,30 +65,9 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, unsigned int idx) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 
 static void *symbol_x64_sys_call;
-static unsigned char x64_sys_call_recovery[12] = {};
-// Values ​​passed as parameters into the function using registers
-// rsi=nr_syscall, rdi=pt_regs
-static const long hook_call_x64_sys_call_table(struct pt_regs *regs,
-                                         unsigned int nr) {
-  if(!(*armor)->crowarmor_is_actived){
-    pr_warn("crowarmor: Driver state disabled, syscall %i not called\n", nr);
-    return -1;
-  }
+static unsigned char x64_sys_call_recovery[20] = {};
 
-  unsigned int unr = nr;
-
-  if (!likely(unr < NR_syscalls)) {
-    pr_warn("crowarmor: Syscall %i not found or does not exist\n", unr);
-    return -1;
-  }
-
-  unr = array_index_nospec(unr, NR_syscalls);
-  regs->ax = ((long (*)(const struct pt_regs *))syscall_table[nr])(regs);
-
-  return regs->ax;
-}
-
-const ERR hook_sys_call_table_x64(void) {
+const ERR hook_sys_call_table_x64(void) {  
   pr_info("crowarmor: Adding sys_call_table kernel patch\n");
   symbol_x64_sys_call = (void *)kallsyms_lookup_name("x64_sys_call");
 
@@ -96,19 +75,20 @@ const ERR hook_sys_call_table_x64(void) {
     pr_info("crowarmor: Symbol 'x64_sys_call' not found\n");
     return ERR_FAILURE;
   }
-
-  memcpy(x64_sys_call_recovery, symbol_x64_sys_call, 12);
+  
+  memcpy(x64_sys_call_recovery, symbol_x64_sys_call, 20);
 
   disable_register_cr0_wp();
   // Write the modified bytes into x64_sys_call memory
-  strncpy((char *)symbol_x64_sys_call, "\x48\xB8",
-          2); // mov rax, [hook_call_x64_sys_call_table]
+  memcpy((char *)symbol_x64_sys_call, "\x48\xB8",
+          2); // movq syscall_table, %rax
 
   *(unsigned long *)(symbol_x64_sys_call + 2) =
-      (unsigned long)hook_call_x64_sys_call_table;
-
-  strncpy((char *)symbol_x64_sys_call + 10, "\xFF\xE0", 2); // jmp rax
-
+      (unsigned long)syscall_table;
+  memcpy((char *)symbol_x64_sys_call + 10, "\x48\x8d\x04\xF0", 4); // leaq  (%rax, %rsi, 8), %rax
+  memcpy((char *)symbol_x64_sys_call + 14, "\x48\x8B\x00", 3); // movq  (%rax), %rax
+  memcpy((char *)symbol_x64_sys_call + 17, "\xFF\xE0", 2); // jmp *%rax
+  
   enable_register_cr0_wp();
 
   return ERR_SUCCESS;
@@ -117,7 +97,7 @@ const ERR hook_sys_call_table_x64(void) {
 void hook_remove_sys_call_table_x64(void) {
   pr_warn("crowarmor: Removing sys_call_table kernel patch ...\n");
   disable_register_cr0_wp();
-  memcpy(symbol_x64_sys_call, x64_sys_call_recovery, 12);
+  memcpy(symbol_x64_sys_call, x64_sys_call_recovery, 20);
   enable_register_cr0_wp();
 }
 
@@ -160,11 +140,6 @@ ERR hook_init(struct crow **crow) {
         "crowarmor: Error in kernel patching, sys_call_table not restored\n");
     return ERR_FAILURE;
   }
-  if (!try_module_get(THIS_MODULE)){
-      pr_info("crowarmor: Error in increment references in use kernel module\n");
-      hook_remove_sys_call_table_x64();
-      return ERR_FAILURE;
-  }
 
 #endif
 
@@ -176,6 +151,8 @@ ERR hook_init(struct crow **crow) {
 
 void hook_end(void) {
   pr_warn("crowarmor: Hook syscalls shutdown ...\n");
+
+  hook_remove_sys_call_table_x64();
 
   for (unsigned int i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);

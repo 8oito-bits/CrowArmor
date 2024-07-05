@@ -71,9 +71,6 @@ install: check_driver
 
 uninstall: check_driver
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Uninstalling driver ..."
-	@if [ $$(sudo cat /dev/crowarmor) -eq 1 ]; then \
-    	sudo sh -c 'echo 0 > /dev/crowarmor' ;\
-	fi
 	@sudo rmmod crowarmor
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Driver Uninstalled Successfully ..."
 
