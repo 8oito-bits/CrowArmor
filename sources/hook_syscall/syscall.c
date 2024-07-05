@@ -1,17 +1,17 @@
 #include <linux/cred.h>
 #include <linux/uidgid.h>
 
-#include "hook.h"
+#include "hook_syscall/hook.h"
 #include "syscall.h"
 
 struct wsyscall {
   int nr_syscall;
   const struct pt_regs *regs;
-  int pid;
+  pid_t pid;
 };
 
 asmlinkage long syscall_memfd_create(const struct pt_regs *regs) {
-  int pid;
+  pid_t pid;
   struct wsyscall syscall;
 
   asmlinkage long (*syscall_old_memfd)(const struct pt_regs *) =

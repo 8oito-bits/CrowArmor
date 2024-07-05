@@ -17,13 +17,13 @@
  * | 31  | PG    | Paging                |
  */
 
-const unsigned long get_cr0(void);
-void set_cr0(unsigned long cr0);
+const unsigned long get_cr0(void) notrace;
+void set_cr0(unsigned long cr0) notrace;
 
 /**
  *   | Bit | Label | Description           |
  *   | --- | ----- | --------------------- |
  *   | 16  | WP    | Write protect         |
  */
-void enable_register_cr0_wp(void);
-void disable_register_cr0_wp(void);
+void enable_register_cr0_wp(void) notrace;
+void disable_register_cr0_wp(void) notrace;
