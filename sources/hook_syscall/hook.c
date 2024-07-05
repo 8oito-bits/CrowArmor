@@ -152,7 +152,9 @@ ERR hook_init(struct crow **crow) {
 void hook_end(void) {
   pr_warn("crowarmor: Hook syscalls shutdown ...\n");
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
   hook_remove_sys_call_table_x64();
+#endif
 
   for (unsigned int i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)
     set_old_syscall(&syscalls[i]);
