@@ -48,4 +48,4 @@ void __exit cleanup_module(void) {
 MODULE_AUTHOR("MalDec Labs");
 MODULE_DESCRIPTION("Driver to hardening");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("1.0.0");
+MODULE_VERSION("1.0.1");
