@@ -1,16 +1,16 @@
-# crowamor: Linux Driver Documentation
+# CrowArmor : Linux Driver Documentation
 
 This document provides a comprehensive overview of the functionality and components of the crowarmor Linux Driver.
 
 ## Roadmap
 
 * [Installation](#installation)
+* [Uninstallation](#uninstallation)
 * [Organizational Folders](#organizational-folders)
-* [Specifications](#specifications)
 
 ## Installation
 
-To install crowarmor, follow the commands below. Ensure that you have GCC version 12 installed for proper compilation. Clone crowarmor dependencies, with Lunatik being a current requirement for extending and scripting in the kernel using LUA scripts.
+To install crowarmor, follow the commands below.
 
 ```sh
 make          # Compile crowarmor
@@ -32,7 +32,15 @@ Available targets:
   make qemu_start    : Start emulation using qemu # for debian-based
 ```
 
-After you install the driver, make sure the driver resides in `/dev/crowarmor`.
+After you install the driver, make sure the driver resides in `/dev/crowarmor`. To check the driver status just run `sudo cat /dev/crowarmor`, 0 for disabled state 1 for enabled state.
+
+## Uninstallation
+
+To safely remove the driver, simply run
+
+```sh
+make uninstall  # Remove crowarmor module
+```
 
 ## Organizational Folders
 
@@ -61,8 +69,4 @@ After you install the driver, make sure the driver resides in `/dev/crowarmor`.
 
 - [**assets**](../assets): In this directory, discover a collection of images specifically related to the visual elements and graphics associated with the crowarmor application.
 
-- [**assets**](../tests): Tests used for features
-
-## Specifications
-
-The crowarmor Linux Driver is specifically optimized for compilation using GCC version 12 to achieve optimal performance and compatibility. Please ensure that GCC version 12 is installed on your system before proceeding with the installation steps provided below. The last version was successfully compiled on kernel 6.5.6-76060506-generic.
+- [**tests**](../tests): Tests used for features

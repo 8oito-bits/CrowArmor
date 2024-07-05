@@ -12,7 +12,10 @@
 #include <linux/uaccess.h> /* for get_user and put_user */
 #include <linux/version.h>
 
+#include "inspector/inspector.h"
+#include "crowarmor/crow.h"
 #include "err/err.h"
+#include "hook_syscall/hook.h"
 #include "io/ioctl.h"
 
 static __always_inline int device_open(struct inode *, struct file *);
@@ -27,8 +30,8 @@ device_ioctl(struct file *file,      /* ditto */
              unsigned int ioctl_num, /* number and param for ioctl */
              unsigned long ioctl_param);
 
-static struct class *cls; /* class for create /dev/<name> */
-static struct crow **armor;
+static struct class *cls;   /* class for create /dev/<name> */
+static struct crow **armor; /* manipulate driver states */
 
 static struct file_operations fops = {
     .read = device_read,
@@ -53,7 +56,7 @@ int device_open(struct inode *_inode, struct file *_file) {
     retval = ERR_FAILURE;
   else
     pr_info(
-        "crowarmor: Driver has been opened and being used this process PID %d",
+        "crowarmor: Driver has been opened and being used this process PID %d\n",
         current->pid);
 
   return retval;
@@ -67,33 +70,101 @@ int device_release(struct inode *_inode, struct file *_file) {
    */
   module_put(THIS_MODULE);
 
-  pr_alert("crowarmor: Driver has been closed this process PID %d",
+  pr_alert("crowarmor: Driver has been closed this process PID %d\n",
            current->pid);
 
   return ERR_SUCCESS;
 }
 
-ssize_t device_read(struct file *_file, char __user *_user, size_t,
-                    loff_t *_loff) {
-  return -EPERM;
+ssize_t device_read(struct file *file, char __user *buffer, size_t length,
+                    loff_t *offset) {
+  if (*offset >= 2) {
+    return 0;
+  }
+
+  char crowarmor_is_actived[2];
+  crowarmor_is_actived[0] = (*armor)->crowarmor_is_actived ? '1' : '0';
+  crowarmor_is_actived[1] = '\n';
+  int crowarmor_is_actived_len = 2;
+
+  if (copy_to_user(buffer, crowarmor_is_actived, crowarmor_is_actived_len) !=
+      0) {
+    return -EFAULT;
+  }
+
+  *offset += crowarmor_is_actived_len;
+
+  return crowarmor_is_actived_len;
 }
 
+/*
+The kernel uses our driver indirectly, so to be able to remove our driver
+you first need to disable some states of the crowarmor driver, so if the driver
+is in use the kernel will prevent it from being removed.
+
+Note: removing the driver directly without disabling the states can
+be harmful to the kernel, causing kernel panic in some versions
+*/
 ssize_t device_write(struct file *file, const char __user *buffer,
                      size_t length, loff_t *offset) {
-  return -EPERM;
+  char crowarmor_input;
+
+  if (*offset >= 1) {
+    pr_warn(
+        "crowarmor: Function device_write already executed once, skipping...\n");
+    return -EINVAL;
+  }
+
+  if (copy_from_user(&crowarmor_input, buffer, 1) != 0) {
+    return -EFAULT;
+  }
+
+  if(((*armor)->crowarmor_is_actived && (crowarmor_input >= '1')) || 
+      (!(*armor)->crowarmor_is_actived && (crowarmor_input <= '0'))){
+    pr_warn(
+        "crowarmor: Driver has already been set to %i\n", (*armor)->crowarmor_is_actived);
+    return -EINVAL;
+  }
+
+  (crowarmor_input >= '1') ? crow_enable_state() : crow_disable_state();
+
+  if ((*armor)->crowarmor_is_actived) {
+    pr_info("crowarmor: Enabling driver states\n");
+    if (IS_ERR_FAILURE(hook_init(&(*armor)))) {
+      pr_info("crowarmor: Error in init hook (hook not installed)");
+    }
+
+    if (IS_ERR_FAILURE(inspector_init(&(*armor)))) {
+      pr_info("crowarmor: Error in init inspector (inspector not monitoring)");
+    }
+  } else {
+    pr_info("crowarmor: Disabling driver states (Some features may no longer work)\n");
+    hook_end();
+    inspector_end();
+  }
+
+  *offset += 1;
+
+  return length;
 }
 
 __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
                                   unsigned long ioctl_param) {
   long retval = ERR_SUCCESS;
 
-  // copy armor
-  struct crow crow = *(*armor);
-
   switch (ioctl_num) {
   case IOCTL_READ_CROW:
-    if (copy_to_user((struct crow *)ioctl_param, &crow, sizeof(crow))) {
-      pr_alert("crowarmor: Error copy to user 'crowarmor struct'");
+    if (copy_to_user((struct crow *)ioctl_param, &*(*armor),
+                     sizeof(*(*armor)))) {
+      pr_alert("crowarmor: Error copy to user 'crowarmor struct'\n");
+      retval = ERR_FAILURE;
+    }
+    break;
+
+  case IOCTL_WRITE_CROW_STATE:
+    if (copy_to_user((_Bool *)(*armor)->crowarmor_is_actived,
+                     &*(_Bool *)ioctl_param, sizeof(_Bool))) {
+      pr_alert("crowarmor: Error write to 'crowarmor_is_actived'\n");
       retval = ERR_FAILURE;
     }
     break;
@@ -108,7 +179,7 @@ __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
 int __must_check chrdev_init(struct crow **crow) {
   int retval = ERR_SUCCESS;
 
-  pr_info("crowarmor: Registering the %s device", platform.driver.name);
+  pr_info("crowarmor: Registering the %s device\n", platform.driver.name);
 
   /*
    * create and register a cdev occupying a range of minors
@@ -149,6 +220,8 @@ int __must_check chrdev_init(struct crow **crow) {
   pr_info("crowarmor: Device created on /dev/%s\n", platform.driver.name);
 
   (*crow)->chrdev_is_actived = true;
+  (*crow)->crowarmor_is_actived = true;
+
   armor = crow;
 
 _retval:
@@ -156,7 +229,7 @@ _retval:
 }
 
 void chrdev_end() {
-  pr_alert("crowarmor: Unregistering the %s device", platform.driver.name);
+  pr_alert("crowarmor: Unregistering the %s device\n", platform.driver.name);
   device_destroy(cls, MKDEV(MAJOR_NUM, 0));
   class_destroy(cls);
 

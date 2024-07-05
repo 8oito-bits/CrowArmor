@@ -9,4 +9,4 @@
  *
  * @return asmlinkage
  */
-asmlinkage long syscall_memfd_create(const struct pt_regs *);
+asmlinkage long syscall_memfd_create(const struct pt_regs *) notrace;
