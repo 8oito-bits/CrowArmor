@@ -1,4 +1,4 @@
-# crowamor: Qemu Tools
+# crowarmor: Qemu Tools
 
 Utilities used for developing the crowarmor driver.
 

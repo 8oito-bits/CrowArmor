@@ -5,6 +5,7 @@
 
 unsigned long kallsyms_lookup_name(const char *name) {
   unsigned long (*kallsyms_lookup_name)(const char *name);
+  unsigned long symbol_addr;
 
   struct kprobe kp = {
       .symbol_name = "kallsyms_lookup_name",
@@ -15,7 +16,11 @@ unsigned long kallsyms_lookup_name(const char *name) {
 
   kallsyms_lookup_name = (unsigned long (*)(const char *name))kp.addr;
 
+  symbol_addr = (unsigned long)kallsyms_lookup_name(name);
+  if (!symbol_addr)
+    return 0;
+
   unregister_kprobe(&kp);
 
-  return (unsigned long)kallsyms_lookup_name(name);
+  return symbol_addr;
 }

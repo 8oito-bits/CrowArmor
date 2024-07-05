@@ -22,8 +22,11 @@ compile:
 
 clean:
 	@echo "$(RESET)$(RED)[*]$(RESET) Deleting Tests drivers compilations ..."
-	@make -C $(KDIR) M=$(PWD) modules
+	@make -C $(KDIR) M=$(PWD) clean
 	@rm *.elf
 
 install:
-	@insmod tests_inspector.ko
+	@sudo insmod tests_inspector.ko
+
+uninstall:
+	@sudo rmmod tests_inspector.ko

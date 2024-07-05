@@ -2,6 +2,7 @@
 KDIR = /lib/modules/$(shell uname -r)/build
 DRIVER_PATH = $(PWD)/sources/crowarmor/crowarmor.ko
 
+
 # Default variables for Makefile in Linux
 obj-m += sources/crowarmor/crowarmor.o
 sources/crowarmor/crowarmor-objs = sources/chrdev/chrdev.o \
