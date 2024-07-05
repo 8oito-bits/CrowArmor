@@ -130,11 +130,11 @@ ssize_t device_write(struct file *file, const char __user *buffer,
 
   if ((*armor)->crowarmor_is_actived) {
     pr_info("crowarmor: Enabling driver states\n");
-    if (!IS_ERR_FAILURE(hook_init(&(*armor)))) {
+    if (IS_ERR_FAILURE(hook_init(&(*armor)))) {
       pr_info("crowarmor: Error in init hook (hook not installed)");
     }
 
-    if (!IS_ERR_FAILURE(inspector_init(&(*armor)))) {
+    if (IS_ERR_FAILURE(inspector_init(&(*armor)))) {
       pr_info("crowarmor: Error in init inspector (inspector not monitoring)");
     }
   } else {
