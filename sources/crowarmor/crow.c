@@ -14,6 +14,8 @@ ERR crow_init(struct crow **crow) {
   (*crow)->inspector_is_actived = false;
 
   armor = crow;
+
+  crow_enable_state();
   return retval;
 }
 

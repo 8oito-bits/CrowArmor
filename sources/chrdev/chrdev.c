@@ -12,6 +12,7 @@
 #include <linux/uaccess.h> /* for get_user and put_user */
 #include <linux/version.h>
 
+#include "inspector/inspector.h"
 #include "crowarmor/crow.h"
 #include "err/err.h"
 #include "hook_syscall/hook.h"
@@ -129,29 +130,17 @@ ssize_t device_write(struct file *file, const char __user *buffer,
 
   if ((*armor)->crowarmor_is_actived) {
     pr_info("crowarmor: Enabling driver states\n");
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-    
-    if (IS_ERR_FAILURE(hook_sys_call_table_x64())) {
-      pr_warn(
-          "crowarmor: Error in kernel patching, sys_call_table not restored\n");
-      return -EFAULT;
+    if (!IS_ERR_FAILURE(hook_init(&(*armor)))) {
+      pr_info("crowarmor: Error in init hook (hook not installed)");
     }
 
-    if (!try_module_get(THIS_MODULE)){
-      pr_info("crowarmor: Error in increment references in use kernel module\n");
-      hook_remove_sys_call_table_x64();
-      return -EFAULT;
+    if (!IS_ERR_FAILURE(inspector_init(&(*armor)))) {
+      pr_info("crowarmor: Error in init inspector (inspector not monitoring)");
     }
-
-#endif
   } else {
     pr_info("crowarmor: Disabling driver states (Some features may no longer work)\n");
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-
-    hook_remove_sys_call_table_x64();
-    module_put(THIS_MODULE);
-
-#endif
+    hook_end();
+    inspector_end();
   }
 
   *offset += 1;

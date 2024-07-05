@@ -1,4 +1,4 @@
-#include "inspector.h"
+#include "inspector/inspector.h"
 
 #include "control_registers/cr0.h"
 #include "control_registers/cr4.h"
