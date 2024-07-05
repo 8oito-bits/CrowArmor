@@ -42,8 +42,6 @@ To safely remove the driver, simply run
 make uninstall  # Remove crowarmor module
 ```
 
-> [!WARNING]
-> Kernel versions greater than or equal to 6.8.0 need to wait a while before removing the driver completely, because in these versions the kernel uses our driver indirectly, the driver patches the kernel function making it use the sys_call_table. 
 ## Organizational Folders
 
 <pre>
