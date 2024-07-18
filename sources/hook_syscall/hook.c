@@ -3,6 +3,7 @@
 #include "crowarmor/datacrow.h"
 #include "kpobres/kallsyms_lookup.h"
 #include "syscall.h"
+#include "syscall_handler.h"
 
 #include <linux/kprobes.h>
 #include <linux/module.h>
@@ -65,7 +66,6 @@ void hook_check_hooked_syscall(struct hook_syscall *syscall, unsigned int idx) {
   }
 }
 #else
-extern void *crowarmor_syscall_handler;
 void *syscall_handler;
 
 static void setup_lstar_hook(void *syscall_handler)
