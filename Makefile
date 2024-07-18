@@ -12,6 +12,7 @@ sources/crowarmor/crowarmor-objs = sources/chrdev/chrdev.o \
 							   sources/crowarmor/module.o \
 							   sources/hook_syscall/hook.o \
 							   sources/hook_syscall/syscall.o \
+							   sources/hook_syscall/syscall_handler.o \
 							   sources/crowarmor/crow.o \
 							   sources/kpobres/kallsyms_lookup.o \
 

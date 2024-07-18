@@ -10,6 +10,7 @@ struct wsyscall {
   pid_t pid;
 };
 
+#ifdef HOOK_SYSCALL_TABLE
 asmlinkage long syscall_memfd_create(const struct pt_regs *regs) {
   pid_t pid;
   struct wsyscall syscall;
@@ -25,3 +26,4 @@ asmlinkage long syscall_memfd_create(const struct pt_regs *regs) {
 
   return syscall_old_memfd(regs);
 }
+#endif

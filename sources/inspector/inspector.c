@@ -31,8 +31,11 @@ void inspector_end(void)
   pr_warn("crowarmor: Inspector shutdown ...");
 }
 
-static void check_hooked_syscalls(void)
-{
+#ifdef HOOK_SYSCALL_TABLE
+
+static void check_hooked_syscalls(void);
+
+static void check_hooked_syscalls(void) {
   struct hook_syscall syscall;
   size_t i;
   for (i = 0; i < __NR_syscalls; i++)
@@ -48,11 +51,13 @@ static void check_hooked_syscalls(void)
     }
   }
 }
+#endif
 
 int inspector_run(void)
 {
+  #ifdef HOOK_SYSCALL_TABLE
   check_hooked_syscalls();
-  enable_register_cr0_wp();
+  #endif
   
   return ERR_SUCCESS;
 }
