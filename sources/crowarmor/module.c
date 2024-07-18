@@ -17,7 +17,7 @@ int __init init_module(void) {
   if (!IS_ERR_FAILURE(retval)) {
     if (!IS_ERR_FAILURE(chrdev_init(&crow))) {
       retval = ERR_SUCCESS;
-      pr_infos_driver();
+      chrdev_pr_infos();
       /*...*/
     }
 

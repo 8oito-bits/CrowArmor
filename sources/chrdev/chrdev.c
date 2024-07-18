@@ -238,7 +238,7 @@ void chrdev_end() {
   (*armor)->chrdev_is_actived = false;
 }
 
-void pr_infos_driver() {
+void chrdev_pr_infos() {
   pr_info("crowarmor: Module name: %s\n", THIS_MODULE->name);
   pr_info("crowarmor: Module version: %s\n", THIS_MODULE->version);
   pr_info("crowarmor: Module srcversion: %s\n", THIS_MODULE->srcversion);
