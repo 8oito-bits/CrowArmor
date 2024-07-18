@@ -1,4 +1,4 @@
-#include "kpobres/kallsyms_lookup.h"
+#include "kprobes/kallsyms_lookup.h"
 
 #include "err/err.h"
 #include <linux/kprobes.h>

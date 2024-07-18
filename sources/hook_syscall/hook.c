@@ -1,7 +1,7 @@
 #include "hook_syscall/hook.h"
 #include "control_registers/cr0.h"
 #include "crowarmor/datacrow.h"
-#include "kpobres/kallsyms_lookup.h"
+#include "kprobes/kallsyms_lookup.h"
 #include "syscall.h"
 #include "syscall_handler.h"
 
@@ -11,6 +11,7 @@
 #include <linux/string.h>
 #include <asm/msr.h>
 #include <asm/msr-index.h>
+
 static struct crow **armor;
 
 #ifdef HOOK_SYSCALL_TABLE

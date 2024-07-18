@@ -14,10 +14,9 @@ sources/crowarmor/crowarmor-objs = sources/chrdev/chrdev.o \
 							   sources/hook_syscall/syscall.o \
 							   sources/hook_syscall/syscall_handler.o \
 							   sources/crowarmor/crow.o \
-							   sources/kpobres/kallsyms_lookup.o \
+							   sources/kprobes/kallsyms_lookup.o \
 
-ccflags-y += -D_KERNEL -Wimplicit-fallthrough=0 \
-	-Wimplicit-fallthrough=0 -I${PWD} -I${PWD}/include -I${PWD}/sources \
+ccflags-y += -I${PWD} -I${PWD}/include -I${PWD}/sources \
 
 # Color codes
 GREEN := $(shell tput setaf 2)
