@@ -15,8 +15,6 @@ inline static bool check_bit_cr0wp(void);
 inline static bool check_bit_cr4pvi(void);
 inline static int inspector_thread_function(void *data);
 
-static void check_hooked_syscalls(void);
-
 static struct task_struct *inspector_thread;
 struct crow **armor;
 
@@ -41,6 +39,9 @@ void inspector_end(void) {
   pr_warn("crowarmor: Thread inspector shutdown ...");
 }
 
+#ifdef HOOK_SYSCALL_TABLE
+static void check_hooked_syscalls(void);
+
 static void check_hooked_syscalls(void) {
   struct hook_syscall syscall;
   size_t i;
@@ -55,12 +56,14 @@ static void check_hooked_syscalls(void) {
     }
   }
 }
+#endif
 
 bool check_bit_cr0wp(void) { return (get_cr0() >> 16) & 0x1; }
 
 bool check_bit_cr4pvi(void) { return (get_cr4() >> 1) & 0x1; }
 
 int inspector_thread_function(void *data) {
+#ifdef HOOK_SYSCALL_TABLE
   while (!kthread_should_stop()) {
     if (!check_bit_cr0wp()) {
       pr_alert("crowarmor: CR0 write-protect bit not set (0); setting "
@@ -98,6 +101,6 @@ int inspector_thread_function(void *data) {
 
     msleep(5);
   }
-
+#endif
   return ERR_SUCCESS;
 }
