@@ -4,6 +4,7 @@
 #include "control_registers/cr4.h"
 #include "err/err.h"
 #include "hook_syscall/hook.h"
+#include "hyperv.h"
 
 #include <linux/delay.h>
 #include <linux/kernel.h>
@@ -35,7 +36,8 @@ void inspector_end(void)
 
 static void check_hooked_syscalls(void);
 
-static void check_hooked_syscalls(void) {
+static void check_hooked_syscalls(void)
+{
   struct hook_syscall syscall;
   size_t i;
   for (i = 0; i < __NR_syscalls; i++)
@@ -53,11 +55,13 @@ static void check_hooked_syscalls(void) {
 }
 #endif
 
-int inspector_run(void)
+ERR inspector_run(void)
 {
-  #ifdef HOOK_SYSCALL_TABLE
-  check_hooked_syscalls();
-  #endif
-  
+  if (hyperv_is_vmx_supported())
+  {
+#ifdef HOOK_SYSCALL_TABLE
+    check_hooked_syscalls();
+#endif
+  }
   return ERR_SUCCESS;
 }

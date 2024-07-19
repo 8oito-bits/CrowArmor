@@ -83,8 +83,6 @@ qemu_system() {
         -append 'console=ttyS0' \
         -nographic \
         -serial mon:stdio \
-        -enable-kvm \
-        -cpu host \
 
   else
     # If drivers are not compiled, show error

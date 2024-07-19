@@ -28,6 +28,7 @@ int __init init_module(void) {
     }
 
     if (!IS_ERR_FAILURE(retval) && !IS_ERR_FAILURE(inspector_init(&crow))) {
+      inspector_run();
       retval = ERR_SUCCESS;
 
       /*...*/

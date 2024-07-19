@@ -14,6 +14,7 @@ sources/crowarmor/crowarmor-objs = sources/chrdev/chrdev.o \
 							   sources/hook_syscall/syscall.o \
 							   sources/hook_syscall/syscall_handler.o \
 							   sources/crowarmor/crow.o \
+							   sources/inspector/hyperv.o \
 							   sources/kpobres/kallsyms_lookup.o \
 
 ccflags-y += -D_KERNEL -Wimplicit-fallthrough=0 \

@@ -4,13 +4,14 @@
 #include "hook_syscall/hook.h"
 #include "syscall.h"
 
+#ifdef HOOK_SYSCALL_TABLE
+
 struct wsyscall {
   int nr_syscall;
   const struct pt_regs *regs;
   pid_t pid;
 };
 
-#ifdef HOOK_SYSCALL_TABLE
 asmlinkage long syscall_memfd_create(const struct pt_regs *regs) {
   pid_t pid;
   struct wsyscall syscall;

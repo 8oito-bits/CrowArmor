@@ -9,6 +9,10 @@
 #define HOOK_SYSCALL_TABLE
 #endif
 
+const __must_check ERR hook_init(struct crow **crow) notrace;
+void hook_end(void) notrace;
+
+#ifdef HOOK_SYSCALL_TABLE
 struct hook_syscall {
   void *new_syscall;
   void *old_syscall;
@@ -16,10 +20,6 @@ struct hook_syscall {
   int idx;
 };
 
-const __must_check ERR hook_init(struct crow **crow) notrace;
-void hook_end(void) notrace;
-
-#ifdef HOOK_SYSCALL_TABLE
 const __must_check void *hook_get_old_syscall(unsigned int) notrace;
 void hook_remove_unknown_syscall(struct hook_syscall *) notrace;
 void hook_check_hooked_syscall(struct hook_syscall *, unsigned int) notrace;
