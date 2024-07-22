@@ -1,3 +1,5 @@
+#define pr_fmt(fmt) "crowarmor: "fmt
+
 #include "crowarmor/crow.h"
 #include <linux/slab.h>
 

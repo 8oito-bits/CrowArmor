@@ -1,3 +1,5 @@
+#define pr_fmt(fmt) "crowarmor: "fmt
+
 #include <linux/kernel.h> /* We are doing kernel work */
 #include <linux/module.h> /* Specifically, a module  */
 
@@ -11,7 +13,7 @@
 static struct crow *crow;
 
 int __init init_module(void) {
-  pr_info("crowarmor: Starting driver crowarmor ...\n");
+  pr_info("Starting driver crowarmor ...\n");
 
   ERR retval = crow_init(&crow);
 
@@ -44,7 +46,7 @@ int __init init_module(void) {
 }
 
 void __exit cleanup_module(void) {
-  pr_warn("crowarmor: Shutdown driver crowarmor ...\n");
+  pr_warn("Shutdown driver crowarmor ...\n");
   chrdev_end();
   inspector_end();
   //hook_end();

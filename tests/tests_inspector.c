@@ -9,7 +9,7 @@ unsigned long
 get_cr0(void)
 {
   unsigned long cr0;
-  __asm__ volatile("mov    %%cr0, %0" : "=r"(cr0));
+  __asm__ volatile("mov    %%cr0, %0": "=r"(cr0));
 
   return cr0;
 }
@@ -17,7 +17,7 @@ get_cr0(void)
 void
 set_cr0(unsigned long cr0)
 {
-  __asm__ volatile("mov    %0, %%cr0" : : "r"(cr0));
+  __asm__ volatile("mov    %0, %%cr0": : "r"(cr0));
 }
 
 void

@@ -1,3 +1,5 @@
+#define pr_fmt(fmt) "crowarmor: "fmt
+
 #include "kprobes/kallsyms_lookup.h"
 #include "err/err.h"
 

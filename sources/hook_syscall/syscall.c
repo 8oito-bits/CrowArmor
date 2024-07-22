@@ -1,3 +1,5 @@
+#define pr_fmt(fmt) "crowarmor: "fmt
+
 #include <linux/cred.h>
 #include <linux/uidgid.h>
 
@@ -23,7 +25,7 @@ asmlinkage long syscall_memfd_create(const struct pt_regs *regs) {
   syscall.nr_syscall = __NR_memfd_create;
   syscall.regs = regs;
 
-  pr_info("crowarmor: Process %i called memfd_create syscall\n", pid);
+  pr_info("Process %i called memfd_create syscall\n", pid);
 
   return syscall_old_memfd(regs);
 }

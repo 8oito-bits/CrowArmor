@@ -1,4 +1,4 @@
-#include "chrdev.h"
+#define pr_fmt(fmt) "crowarmor: "fmt
 
 #include <linux/atomic.h>
 #include <linux/cdev.h>
@@ -17,6 +17,7 @@
 #include "err/err.h"
 #include "hook_syscall/hook.h"
 #include "io/ioctl.h"
+#include "chrdev.h"
 
 static __always_inline int device_open(struct inode *, struct file *);
 static __always_inline int device_release(struct inode *, struct file *);
@@ -56,7 +57,7 @@ int device_open(struct inode *_inode, struct file *_file) {
     retval = ERR_FAILURE;
   else
     pr_info(
-        "crowarmor: Driver has been opened and being used this process PID %d\n",
+        "Driver has been opened and being used this process PID %d\n",
         current->pid);
 
   return retval;
@@ -70,7 +71,7 @@ int device_release(struct inode *_inode, struct file *_file) {
    */
   module_put(THIS_MODULE);
 
-  pr_alert("crowarmor: Driver has been closed this process PID %d\n",
+  pr_alert("Driver has been closed this process PID %d\n",
            current->pid);
 
   return ERR_SUCCESS;
@@ -111,7 +112,7 @@ ssize_t device_write(struct file *file, const char __user *buffer,
 
   if (*offset >= 1) {
     pr_warn(
-        "crowarmor: Function device_write already executed once, skipping...\n");
+        "Function device_write already executed once, skipping...\n");
     return -EINVAL;
   }
 
@@ -122,23 +123,23 @@ ssize_t device_write(struct file *file, const char __user *buffer,
   if(((*armor)->crowarmor_is_actived && (crowarmor_input >= '1')) || 
       (!(*armor)->crowarmor_is_actived && (crowarmor_input <= '0'))){
     pr_warn(
-        "crowarmor: Driver has already been set to %i\n", (*armor)->crowarmor_is_actived);
+        "Driver has already been set to %i\n", (*armor)->crowarmor_is_actived);
     return -EINVAL;
   }
 
   (crowarmor_input >= '1') ? crow_enable_state() : crow_disable_state();
 
   if ((*armor)->crowarmor_is_actived) {
-    pr_info("crowarmor: Enabling driver states\n");
+    pr_info("Enabling driver states\n");
     if (IS_ERR_FAILURE(hook_init(&(*armor)))) {
-      pr_info("crowarmor: Error in init hook (hook not installed)");
+      pr_info("Error in init hook (hook not installed)");
     }
 
     if (IS_ERR_FAILURE(inspector_init(&(*armor)))) {
-      pr_info("crowarmor: Error in init inspector (inspector not monitoring)");
+      pr_info("Error in init inspector (inspector not monitoring)");
     }
   } else {
-    pr_info("crowarmor: Disabling driver states (Some features may no longer work)\n");
+    pr_info("Disabling driver states (Some features may no longer work)\n");
     hook_end();
     inspector_end();
   }
@@ -156,7 +157,7 @@ __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
   case IOCTL_READ_CROW:
     if (copy_to_user((struct crow *)ioctl_param, &*(*armor),
                      sizeof(*(*armor)))) {
-      pr_alert("crowarmor: Error copy to user 'crowarmor struct'\n");
+      pr_alert("Error copy to user 'crowarmor struct'\n");
       retval = ERR_FAILURE;
     }
     break;
@@ -164,7 +165,7 @@ __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
   case IOCTL_WRITE_CROW_STATE:
     if (copy_to_user((_Bool *)(*armor)->crowarmor_is_actived,
                      &*(_Bool *)ioctl_param, sizeof(_Bool))) {
-      pr_alert("crowarmor: Error write to 'crowarmor_is_actived'\n");
+      pr_alert("Error write to 'crowarmor_is_actived'\n");
       retval = ERR_FAILURE;
     }
     break;
@@ -179,19 +180,19 @@ __always_inline long device_ioctl(struct file *file, unsigned int ioctl_num,
 int __must_check chrdev_init(struct crow **crow) {
   int retval = ERR_SUCCESS;
 
-  pr_info("crowarmor: Registering the %s device\n", platform.driver.name);
+  pr_info("Registering the %s device\n", platform.driver.name);
 
   /*
    * create and register a cdev occupying a range of minors
    * ref: https://elixir.bootlin.com/linux/latest/source/fs/char_dev.c#L268
    */
   if (register_chrdev(MAJOR_NUM, platform.driver.name, &fops) == -ENOMEM) {
-    pr_alert("crowarmor: Registering char device failed with %d\n", MAJOR_NUM);
+    pr_alert("Registering char device failed with %d\n", MAJOR_NUM);
     retval = ERR_FAILURE;
     goto _retval;
   }
 
-  pr_info("crowarmor: I was assigned major number %d\n", MAJOR_NUM);
+  pr_info("I was assigned major number %d\n", MAJOR_NUM);
 
 /**
  * class_create - create a struct class structure
@@ -217,7 +218,7 @@ int __must_check chrdev_init(struct crow **crow) {
   }
 
   device_create(cls, NULL, MKDEV(MAJOR_NUM, 0), NULL, platform.driver.name);
-  pr_info("crowarmor: Device created on /dev/%s\n", platform.driver.name);
+  pr_info("Device created on /dev/%s\n", platform.driver.name);
 
   (*crow)->chrdev_is_actived = true;
   (*crow)->crowarmor_is_actived = true;
@@ -229,7 +230,7 @@ _retval:
 }
 
 void chrdev_end() {
-  pr_alert("crowarmor: Unregistering the %s device\n", platform.driver.name);
+  pr_alert("Unregistering the %s device\n", platform.driver.name);
   device_destroy(cls, MKDEV(MAJOR_NUM, 0));
   class_destroy(cls);
 
@@ -239,18 +240,18 @@ void chrdev_end() {
 }
 
 void chrdev_pr_infos() {
-  pr_info("crowarmor: Module name: %s\n", THIS_MODULE->name);
-  pr_info("crowarmor: Module version: %s\n", THIS_MODULE->version);
-  pr_info("crowarmor: Module srcversion: %s\n", THIS_MODULE->srcversion);
-  pr_info("crowarmor: Module state: %i\n", THIS_MODULE->state);
+  pr_info("Module name: %s\n", THIS_MODULE->name);
+  pr_info("Module version: %s\n", THIS_MODULE->version);
+  pr_info("Module srcversion: %s\n", THIS_MODULE->srcversion);
+  pr_info("Module state: %i\n", THIS_MODULE->state);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
-  pr_info("crowarmor: Module address: 0x%llx\n",
+  pr_info("Module address: 0x%llx\n",
           (unsigned long long)THIS_MODULE->mem->base);
-  pr_info("crowarmor: Module size: 0x%llx\n",
+  pr_info("Module size: 0x%llx\n",
           (unsigned long long)THIS_MODULE->mem->size);
 #endif
 
 #ifdef CONFIG_STACKTRACE_BUILD_ID
-  pr_info("crowarmor: Module build ID: %p\n", THIS_MODULE->build_id);
+  pr_info("Module build ID: %p\n", THIS_MODULE->build_id);
 #endif
 }

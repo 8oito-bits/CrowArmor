@@ -1,3 +1,5 @@
+#define pr_fmt(fmt) "crowarmor: "fmt
+
 #include "hook_syscall/hook.h"
 #include "control_registers/cr0.h"
 #include "crowarmor/datacrow.h"
@@ -11,6 +13,7 @@
 #include <linux/string.h>
 #include <asm/msr.h>
 #include <asm/msr-index.h>
+
 static struct crow **armor;
 
 #ifdef HOOK_SYSCALL_TABLE
@@ -75,7 +78,7 @@ static void setup_lstar_hook(void *syscall_handler)
 
 void hook_syscall_handler_c(void)
 {
-  pr_info("crowarmor: Process %i called memfd_create syscall\n", task_pid_nr(current));
+  pr_info("Process %i called memfd_create syscall\n", task_pid_nr(current));
 }
 #endif
 
@@ -87,7 +90,7 @@ ERR hook_init(struct crow **crow) {
   syscall_table = (unsigned long **)kallsyms_lookup_name("sys_call_table");
 
   if (syscall_table == NULL) {
-    pr_info("crowarmor: Failed to get syscall table\n");
+    pr_info("Failed to get syscall table\n");
     return ERR_FAILURE;
   }
 
@@ -120,7 +123,7 @@ ERR hook_init(struct crow **crow) {
 }
 
 void hook_end(void) {
-  pr_warn("crowarmor: Hook syscalls shutdown ...\n");
+  pr_warn("Hook syscalls shutdown ...\n");
 
 #ifdef HOOK_SYSCALL_TABLE
   for (unsigned int i = 0; !IS_NULL_PTR(syscalls[i].new_syscall); i++)

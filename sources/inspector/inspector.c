@@ -1,3 +1,5 @@
+#define pr_fmt(fmt) "crowarmor: "fmt
+
 #include "inspector/inspector.h"
 #include "control_registers/cr0.h"
 #include "control_registers/cr4.h"
@@ -17,7 +19,7 @@ ERR inspector_init(struct crow **crow)
 {
   ERR retval = ERR_SUCCESS;
 
-  pr_info("crowarmor: Inspector running ...");
+  pr_info("Inspector running ...");
 
   (*crow)->inspector_is_actived = true;
   armor = crow;
@@ -28,7 +30,7 @@ ERR inspector_init(struct crow **crow)
 void inspector_end(void)
 {
   (*armor)->inspector_is_actived = false;
-  pr_warn("crowarmor: Inspector shutdown ...");
+  pr_warn("Inspector shutdown ...");
 }
 
 #ifdef HOOK_SYSCALL_TABLE
@@ -44,11 +46,11 @@ static void check_hooked_syscalls(void)
     hook_check_hooked_syscall(&syscall, i);
     if (syscall.unknown_hook)
     {
-      pr_info("crowarmor: Syscall %i hooked by %lx\n", syscall.idx,
+      pr_info("Syscall %i hooked by %lx\n", syscall.idx,
               (unsigned long)syscall.new_syscall);
-      pr_info("crowarmor: Restoring syscall...");
+      pr_info("Restoring syscall...");
       hook_remove_unknown_syscall(&syscall);
-      pr_info("crowarmor: Syscall restored");
+      pr_info("Syscall restored");
     }
   }
 }
