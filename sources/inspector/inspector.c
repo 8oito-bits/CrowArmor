@@ -1,10 +1,9 @@
 #include "inspector/inspector.h"
-
 #include "control_registers/cr0.h"
 #include "control_registers/cr4.h"
 #include "err/err.h"
 #include "hook_syscall/hook.h"
-#include "hyperv.h"
+#include "hyperv/hyperv.h"
 
 #include <linux/delay.h>
 #include <linux/kernel.h>
@@ -12,7 +11,7 @@
 #include <linux/sched.h>
 #include <linux/unistd.h>
 
-struct crow **armor;
+static struct crow **armor;
 
 ERR inspector_init(struct crow **crow)
 {
@@ -45,11 +44,11 @@ static void check_hooked_syscalls(void)
     hook_check_hooked_syscall(&syscall, i);
     if (syscall.unknown_hook)
     {
-      pr_info("crowarmor: syscall %i hooked by %lx\n", syscall.idx,
+      pr_info("crowarmor: Syscall %i hooked by %lx\n", syscall.idx,
               (unsigned long)syscall.new_syscall);
-      pr_info("crowarmor: restoring syscall...");
+      pr_info("crowarmor: Restoring syscall...");
       hook_remove_unknown_syscall(&syscall);
-      pr_info("crowarmor: syscall restored");
+      pr_info("crowarmor: Syscall restored");
     }
   }
 }
@@ -57,11 +56,8 @@ static void check_hooked_syscalls(void)
 
 ERR inspector_run(void)
 {
-  if (hyperv_is_vmx_supported())
-  {
 #ifdef HOOK_SYSCALL_TABLE
     check_hooked_syscalls();
 #endif
-  }
   return ERR_SUCCESS;
 }

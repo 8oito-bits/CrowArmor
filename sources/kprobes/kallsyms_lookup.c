@@ -1,6 +1,6 @@
-#include "kpobres/kallsyms_lookup.h"
-
+#include "kprobes/kallsyms_lookup.h"
 #include "err/err.h"
+
 #include <linux/kprobes.h>
 
 unsigned long kallsyms_lookup_name(const char *name) {

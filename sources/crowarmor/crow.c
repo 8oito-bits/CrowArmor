@@ -12,6 +12,7 @@ ERR crow_init(struct crow **crow) {
   (*crow)->chrdev_is_actived = false;
   (*crow)->hook_is_actived = false;
   (*crow)->inspector_is_actived = false;
+  (*crow)->hyperv_is_actived = false;
 
   armor = crow;
 

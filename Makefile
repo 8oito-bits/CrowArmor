@@ -14,8 +14,9 @@ sources/crowarmor/crowarmor-objs = sources/chrdev/chrdev.o \
 							   sources/hook_syscall/syscall.o \
 							   sources/hook_syscall/syscall_handler.o \
 							   sources/crowarmor/crow.o \
-							   sources/inspector/hyperv.o \
-							   sources/kpobres/kallsyms_lookup.o \
+							   sources/hyperv/hyperv.o \
+							   sources/hyperv/vmx.o \
+							   sources/kprobes/kallsyms_lookup.o \
 
 ccflags-y += -D_KERNEL -Wimplicit-fallthrough=0 \
 	-Wimplicit-fallthrough=0 -I${PWD} -I${PWD}/include -I${PWD}/sources \
@@ -62,6 +63,7 @@ help:
 	@echo "  $(RESET)$(GREEN)make uninstall$(RESET)     : Uninstall Driver from machine"
 	@echo "  $(RESET)$(GREEN)make tests_compile$(RESET) : Make Tests Driver"
 	@echo "  $(RESET)$(GREEN)make tests_clean$(RESET)   : Delete Tests Driver"
+	@echo "  $(RESET)$(GREEN)make dmesg$(RESET)   		: Log this driver"
 	@if [ -f "/etc/debian_version" ]; then \
     	echo "  $(RESET)$(GREEN)make qemu_start$(RESET)    : Start emulation using qemu"; \
     fi 
@@ -71,7 +73,7 @@ install: check_driver
 	@sudo insmod $(DRIVER_PATH)
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Drivers Installed Successfully ..."
 
-uninstall: check_driver
+uninstall:
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Uninstalling driver ..."
 	@sudo rmmod crowarmor
 	@echo "$(RESET)$(BLUE)[*]$(RESET) Driver Uninstalled Successfully ..."
@@ -84,3 +86,6 @@ tests_clean:
 
 qemu_start:
 	@scripts/qemu/qemu-system-x86.run
+
+dmesg:
+	@sudo dmesg | grep --color 'crowarmor'

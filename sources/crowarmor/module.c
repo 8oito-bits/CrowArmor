@@ -6,6 +6,7 @@
 #include "err/err.h"
 #include "hook_syscall/hook.h"
 #include "inspector/inspector.h"
+#include "hyperv/hyperv.h"
 
 static struct crow *crow;
 
@@ -21,12 +22,16 @@ int __init init_module(void) {
       /*...*/
     }
 
-    if (!IS_ERR_FAILURE(retval) && !IS_ERR_FAILURE(hook_init(&crow))) {
+    //if (!IS_ERR_FAILURE(retval) && !IS_ERR_FAILURE(hook_init(&crow))) {
       retval = ERR_SUCCESS;
 
       /*...*/
-    }
+   // }
 
+    if (!IS_ERR_FAILURE(retval) && !IS_ERR_FAILURE(hyperv_init(&crow))) {
+      
+    }
+    
     if (!IS_ERR_FAILURE(retval) && !IS_ERR_FAILURE(inspector_init(&crow))) {
       inspector_run();
       retval = ERR_SUCCESS;
@@ -42,7 +47,7 @@ void __exit cleanup_module(void) {
   pr_warn("crowarmor: Shutdown driver crowarmor ...\n");
   chrdev_end();
   inspector_end();
-  hook_end();
+  //hook_end();
   crow_end(&crow);
 }
 
